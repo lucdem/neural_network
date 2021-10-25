@@ -23,9 +23,8 @@ class NetListWidget(QListWidget):
 		menu.exec(event.globalPos())
 
 	def new_net(self):
-		n = len(self.items)
-		net_id = self.net_manager.new_net()
-		self.addItem(NetListItem(f"Net {n}", net_id))
+		self.net_manager.new_net()
+		self.addItem(NetListItem(self.net_manager.selected_net.name, self.net_manager.selected_net_id))
 
 	def remove_net(self, item):
 		self.net_manager.remove_net(item.net_id)

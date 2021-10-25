@@ -28,8 +28,11 @@ class MainWindow(QWidget):
 		self.top_layer_layout.addWidget(self.center_widget, stretch=4)
 		self.top_layer_layout.addWidget(self.graph_widget, stretch=3)
 
-		self.center_widget.layout().addWidget(NetParamsBox(net_manager), stretch=1)
-		self.center_widget.layout().addWidget(TrainingParamsBox(net_manager), stretch=1)
+		self.net_params_box = NetParamsBox(net_manager)
+		self.center_widget.layout().addWidget(self.net_params_box, stretch=1)
+
+		self.training_params_box = TrainingParamsBox(net_manager)
+		self.center_widget.layout().addWidget(self.training_params_box, stretch=1)
 
 		self.layer_params_box = LayerParamsBox(net_manager)
 		self.center_widget.layout().addWidget(self.layer_params_box, stretch=2)
@@ -58,3 +61,6 @@ class MainWindow(QWidget):
 
 	def print(self):
 		print('aa')
+
+	def read_net_params(self):
+		self.net_params_box
