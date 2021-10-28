@@ -36,6 +36,6 @@ class NetManager():
 		for listener in self.selection_change_listeners:
 			listener()
 
-	# def update_net(self):
-	# 	for listener in self.update_listeners:
-	# 		listener()
+	def update_net(self):
+		for listener in self.update_listeners:
+			listener()
