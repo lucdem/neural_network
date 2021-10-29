@@ -1,7 +1,6 @@
-from PyQt5.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QWidget
+from PyQt5.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+	QLineEdit, QPushButton, QSpinBox, QWidget, QSizePolicy)
 from PyQt5.QtCore import Qt
-
-from .layer_params_box import LayerParamsBox
 
 from app import NetManager
 
@@ -12,6 +11,8 @@ class NetParamsBox(QGroupBox):
 
 		self.net_manager: NetManager = net_manager
 
+		self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Maximum)
+
 		self.setTitle("Network Parameters")
 		self.setLayout(QHBoxLayout())
 
@@ -20,7 +21,7 @@ class NetParamsBox(QGroupBox):
 
 		self.layout().addWidget(params_grid_widget)
 		self.build_net_button = QPushButton("Build\nNetwork")
-		self.build_net_button.setFixedWidth(self.build_net_button.fontMetrics().width(self.build_net_button.text()) + 15)
+		self.build_net_button.setFixedWidth(self.build_net_button.fontMetrics().width(self.build_net_button.text()))
 		self.build_net_button.setFixedHeight(self.build_net_button.width())
 		self.layout().addWidget(self.build_net_button)
 		self.build_net_button.clicked.connect(self.build_net)
@@ -45,4 +46,6 @@ class NetParamsBox(QGroupBox):
 		params_grid_widget.layout().addWidget(self.hidden_layer_count_input, 1, 5)
 
 	def build_net(self):
-		self.net_manager.build_net(self.name_input.text, self.input_count_input.value(), self.input_count_input.value(), )
+		return
+		# self.net_manager.build_net(self.name_input.text,
+		# 	self.input_count_input.value(), self.input_count_input.value(), )

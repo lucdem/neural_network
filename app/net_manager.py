@@ -24,10 +24,17 @@ class NetManager():
 		self.net_by_id[id] = net
 		self.change_selected_net(id)
 
-	def remove_net(self, id):
-		self.net_by_id.pop(id)
-		# for listener in self.net_removal_listeners:
-		# 	listener()
+	def build_net(self, name, input_count, output_count, neuron_type, layer_sizes):
+		net = ExtendedNeuralNetwork(name, input_count, output_count, neuron_type, layer_sizes)
+		self.last_assigned_id += 1
+		id = self.last_assigned_id
+		self.net_by_id[id] = net
+		self.change_selected_net(id)
+
+	# def remove_net(self, id):
+	# 	self.net_by_id.pop(id)
+	# 	for listener in self.net_removal_listeners:
+	# 		listener()
 
 	def change_selected_net(self, selected_id):
 		if selected_id == self.selected_net_id:
@@ -36,6 +43,6 @@ class NetManager():
 		for listener in self.selection_change_listeners:
 			listener()
 
-	def update_net(self):
-		for listener in self.update_listeners:
-			listener()
+	# def update_net(self):
+	# 	for listener in self.update_listeners:
+	# 		listener()

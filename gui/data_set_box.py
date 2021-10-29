@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QScrollArea, QWidget
+from PyQt5.QtWidgets import QGroupBox, QVBoxLayout
 
-from gui.load_file_widget import LoadFileWidget
+from .load_file_widget import LoadFileWidget
 
 
 class DataSetBox(QGroupBox):

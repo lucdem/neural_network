@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QSpinBox)
+from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox,
+	QHBoxLayout, QLabel, QSizePolicy, QSpinBox)
 from PyQt5.QtCore import Qt
 
 
@@ -7,10 +8,11 @@ class TrainingParamsBox(QGroupBox):
 		super().__init__()
 		self.net_manager = net_manager
 
+		self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Maximum)
+
 		self.setTitle("Training Parameters")
 
 		grid_layout = QGridLayout()
-
 		grid_layout.addWidget(QLabel('Learning rate'), 0, 0, Qt.AlignmentFlag.AlignCenter)
 		learning_rate_input = QSpinBox()
 		learning_rate_input.setRange(1, 9)
