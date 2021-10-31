@@ -1,9 +1,11 @@
-from enum import IntEnum, auto
+from enum import Enum, auto
+
+from neural_network import SigmoidLogisticNeuron, SigmoidTanhNeuron, ReLU_Neuron, LeakyReLU_Neuron, LinearNeuron
 
 
-class NeuronTypeEnum(IntEnum):
-	Logistic = auto()
-	Tanh = auto()
-	ReLU = auto()
-	LeakyReLU = auto()
-	Identity = auto()
+class NeuronTypeEnum(Enum):
+	Logistic = SigmoidLogisticNeuron
+	Tanh = SigmoidTanhNeuron
+	ReLU = ReLU_Neuron
+	LeakyReLU = LeakyReLU_Neuron
+	Identity = LinearNeuron

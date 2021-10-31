@@ -1,3 +1,4 @@
+from app.neuron_type_enum import NeuronTypeEnum
 from typing import List, Callable, Dict
 
 from neural_network import LinearNeuron
@@ -24,12 +25,8 @@ class NetManager():
 		self.net_by_id[id] = net
 		self.change_selected_net(id)
 
-	def build_net(self, name, input_count, output_count, neuron_type, layer_sizes):
-		net = ExtendedNeuralNetwork(name, input_count, output_count, neuron_type, layer_sizes)
-		self.last_assigned_id += 1
-		id = self.last_assigned_id
-		self.net_by_id[id] = net
-		self.change_selected_net(id)
+	def build_net(self, name, neuron_type, input_count, layer_sizes):
+		self.net_by_id[self.last_assigned_id] = ExtendedNeuralNetwork(name, neuron_type, input_count, layer_sizes)
 
 	# def remove_net(self, id):
 	# 	self.net_by_id.pop(id)

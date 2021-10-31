@@ -8,6 +8,8 @@ class NetListWidget(QListWidget):
 		super().__init__()
 		self.net_manager: NetManager = net_manager
 
+		self.new_net()
+
 	def contextMenuEvent(self, event):
 		menu = QMenu(self)
 
@@ -30,8 +32,12 @@ class NetListWidget(QListWidget):
 		self.net_manager.remove_net(item.net_id)
 		self.removeItemWidget(item)
 
+	def change_selected_net_name(self, name):
+		self.currentItem().setText(name)
+		pass
+
 
 class NetListItem(QListWidgetItem):
-	def __init__(self, text, net_id):
-		super().__init__(text)
+	def __init__(self, name, net_id):
+		super().__init__(name)
 		self.net_id = net_id

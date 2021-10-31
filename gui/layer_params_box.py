@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List
 
 from PyQt5.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QSizePolicy, QSpinBox, QVBoxLayout, QScrollArea, QWidget
@@ -35,19 +36,23 @@ class LayerParamsBox(QGroupBox):
 		self.scroll_area.setWidgetResizable(True)
 		self.layout().addWidget(self.scroll_area)
 
+		self.hidden_layers_inner_boxes: List[HiddenLayerInnerBox] = []
+
 		self.input_layer_box = InputLayerInnerBox()
 		self.output_layer_box = OutputLayerInnerBox()
 
-		self.append_layer(self.input_layer_box)
-		self.append_layer(self.output_layer_box)
+		self.__append_layer(self.input_layer_box)
+		self.__append_layer(self.output_layer_box)
 
-	def append_layer(self, inner_box):
+	def __append_layer(self, inner_box):
 		self.scroll_area_layout.addWidget(inner_box)
 
-	def insert_layer(self, inner_box, index):
-		self.scroll_area_layout.insertWidget(index, inner_box)
+	def add_hidden_layer(self, inner_box):
+		self.hidden_layers_inner_boxes.append(inner_box)
+		self.scroll_area_layout.insertWidget(self.scroll_area_layout.count() - 1, inner_box)
 
 	def remove_layer(self):
+		self.hidden_layers_inner_boxes.pop()
 		self.scroll_area_layout.removeWidget(self.scroll_area_layout.itemAt(self.scroll_area_layout.count() - 2).widget())
 
 	def set_input_layer_size(self, size):
@@ -58,10 +63,20 @@ class LayerParamsBox(QGroupBox):
 
 	def change_hidden_layer_count(self, count):
 		if count > self.scroll_area_layout.count() - 2:
-			self.insert_layer(HiddenLayerInnerBox(
-				self.default_layer_type_input.itemData(self.default_layer_type_input.currentIndex())), count)
+			self.add_hidden_layer(HiddenLayerInnerBox(
+				self.default_layer_type_input.itemData(self.default_layer_type_input.currentIndex())))
 		elif count < self.scroll_area_layout.count() - 2:
 			self.remove_layer()
+
+	def get_layer_sizes(self):
+		sizes = [inner_box.size_input.value() for inner_box in self.hidden_layers_inner_boxes]
+		sizes.append(self.output_layer_box.size_input.value())
+		return sizes
+
+	def get_layer_types(self):
+		types = [inner_box.type_input.value() for inner_box in self.hidden_layers_inner_boxes]
+		types.append(self.output_layer_box.type_input.value())
+		return types
 
 
 class LayerInnerBox(QGroupBox):

@@ -1,3 +1,4 @@
+from app.net_manager import NetManager
 from gui.text_output_widget import TextOutputWidget
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMenu, QSizePolicy
 
@@ -7,13 +8,14 @@ from .net_params_box import NetParamsBox
 from .training_params_box import TrainingParamsBox
 from .layer_params_box import LayerParamsBox
 from .net_list_widget import NetListWidget
+from gui import net_list_widget
 
 
 class MainWindow(QWidget):
 	def __init__(self, net_manager):
 		super().__init__()
 
-		self.net_manager = net_manager
+		self.net_manager: NetManager = net_manager
 		self.graph_wrapper = GraphWrapper()
 
 		# build window
@@ -57,6 +59,9 @@ class MainWindow(QWidget):
 		self.net_params_box.output_count_input.valueChanged.connect(self.layer_params_box.set_output_layer_size)
 		self.net_params_box.hidden_layer_count_input.valueChanged.connect(self.layer_params_box.change_hidden_layer_count)
 
+		self.net_params_box.build_net_button.clicked.connect(self.build_net)
+		self.net_params_box.name_input.edit_finished_value_signal.connect(self.net_list_widget.change_selected_net_name)
+
 	def show(self):
 		self.showMaximized()
 
@@ -67,3 +72,10 @@ class MainWindow(QWidget):
 		new_item_action.triggered.connect(self.print)
 
 		menu.exec(event.globalPos())
+
+	def build_net(self):
+		name = self.net_params_box.name_input.text()
+		input_count = self.net_params_box.input_count_input.value()
+		layer_sizes = self.layer_params_box.get_layer_sizes()
+		neuron_type = self.layer_params_box.default_layer_type_input.selected_type()
+		self.net_manager.build_net(name, neuron_type, input_count, layer_sizes)

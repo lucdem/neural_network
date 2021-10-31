@@ -12,3 +12,6 @@ class LayerTypeComboBox(QComboBox):
 
 		if initial_type is not None:
 			self.setCurrentIndex(self.findData(initial_type))
+
+	def selected_type(self):
+		return self.currentData()
