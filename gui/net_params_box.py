@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt
 
 from app import NetManager
 
+from .extended_line_edit import Extended_QLineEdit
+
 
 class NetParamsBox(QGroupBox):
 	def __init__(self, net_manager):
@@ -29,7 +31,6 @@ class NetParamsBox(QGroupBox):
 		self.layout().addWidget(buttons_container_widget, alignment= Qt.AlignmentFlag.AlignRight, stretch = 0)
 
 		self.build_net_button = QPushButton("Build Network")
-		self.build_net_button.clicked.connect(self.build_net)
 		buttons_container_widget.layout().addWidget(self.build_net_button)
 
 		self.train_net_button = QPushButton("Start Training")
@@ -41,7 +42,7 @@ class NetParamsBox(QGroupBox):
 		buttons_container_widget.layout().addWidget(self.train_net_button)
 
 		params_grid_widget.layout().addWidget(QLabel('Net Name'), 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
-		self.name_input = QLineEdit()
+		self.name_input = Extended_QLineEdit()
 		params_grid_widget.layout().addWidget(self.name_input, 0, 1, 1, 5)
 
 		params_grid_widget.layout().addWidget(QLabel('Input count'), 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -58,11 +59,6 @@ class NetParamsBox(QGroupBox):
 		self.hidden_layer_count_input = QSpinBox()
 		self.hidden_layer_count_input.setRange(0, 2000000)
 		params_grid_widget.layout().addWidget(self.hidden_layer_count_input, 1, 5)
-
-	def build_net(self):
-		return
-		# self.net_manager.build_net(self.name_input.text,
-		# 	self.input_count_input.value(), self.input_count_input.value(), )
 
 	def train_net(self):
 		return
