@@ -53,6 +53,8 @@ class MainWindow(QWidget):
 
 		# event/signal bindings
 
+		self.net_params_box.input_count_input.valueChanged.connect(self.layer_params_box.set_input_layer_size)
+		self.net_params_box.output_count_input.valueChanged.connect(self.layer_params_box.set_output_layer_size)
 		self.net_params_box.hidden_layer_count_input.valueChanged.connect(self.layer_params_box.change_hidden_layer_count)
 
 	def show(self):

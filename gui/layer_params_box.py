@@ -35,9 +35,11 @@ class LayerParamsBox(QGroupBox):
 		self.scroll_area.setWidgetResizable(True)
 		self.layout().addWidget(self.scroll_area)
 
-		self.append_layer(InputLayerInnerBox())
-		self.append_layer(HiddenLayerInnerBox())
-		self.append_layer(OutputLayerInnerBox())
+		self.input_layer_box = InputLayerInnerBox()
+		self.output_layer_box = OutputLayerInnerBox()
+
+		self.append_layer(self.input_layer_box)
+		self.append_layer(self.output_layer_box)
 
 	def append_layer(self, inner_box):
 		self.scroll_area_layout.addWidget(inner_box)
@@ -47,6 +49,12 @@ class LayerParamsBox(QGroupBox):
 
 	def remove_layer(self):
 		self.scroll_area_layout.removeWidget(self.scroll_area_layout.itemAt(self.scroll_area_layout.count() - 2).widget())
+
+	def set_input_layer_size(self, size):
+		self.input_layer_box.size_input.setValue(size)
+
+	def set_output_layer_size(self, size):
+		self.output_layer_box.size_input.setValue(size)
 
 	def change_hidden_layer_count(self, count):
 		if count > self.scroll_area_layout.count() - 2:
@@ -84,6 +92,10 @@ class OutputLayerInnerBox(LayerInnerBox):
 	def __init__(self):
 		super().__init__("Output Layer")
 		self.size_input.setDisabled(True)
+
+		self.layout().addWidget(QLabel("Layer Type"))
+		self.type_input = LayerTypeComboBox()
+		self.layout().addWidget(self.type_input)
 
 
 class HiddenLayerInnerBox(LayerInnerBox):
