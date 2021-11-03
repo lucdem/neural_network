@@ -11,7 +11,7 @@ class NetManager():
 		self.selected_net_id = -1
 		self.last_assigned_id = -1
 		self.selection_change_listeners: List[Callable] = []
-		# self.update_listeners: List[Callable] = []
+		self.update_name_listeners: List[Callable] = []
 		# self.net_removal_listeners: List[Callable] = []
 
 	@property
@@ -40,6 +40,7 @@ class NetManager():
 		for listener in self.selection_change_listeners:
 			listener()
 
-	# def update_net(self):
-	# 	for listener in self.update_listeners:
-	# 		listener()
+	def update_net_name(self, name):
+		self.selected_net.name = name
+		for listener in self.update_name_listeners:
+			listener(self.selected_net.name)
