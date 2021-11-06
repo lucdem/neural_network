@@ -10,7 +10,7 @@ class NetListWidget(QListWidget):
 	def __init__(self, net_manager):
 		super().__init__()
 		self.net_manager: NetManager = net_manager
-		self.itemSelectionChanged.connect(self.__selected_net_changed_handler)
+		self.itemSelectionChanged.connect(self.change_selected_net)
 
 		self.new_net()
 
@@ -41,8 +41,8 @@ class NetListWidget(QListWidget):
 	def change_selected_net_name(self, name):
 		self.currentItem().setText(name)
 
-	def __selected_net_changed_handler(self):
-		self.selected_net_changed_signal.emit(self.currentItem().net_id)
+	def change_selected_net(self):
+		self.net_manager.change_selected_net(self.currentItem().net_id)
 
 
 class NetListItem(QListWidgetItem):

@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-	QLineEdit, QPushButton, QSpinBox, QVBoxLayout, QWidget, QSizePolicy)
+from PyQt5.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel, 
+	QPushButton, QSpinBox, QVBoxLayout, QWidget, QSizePolicy)
 from PyQt5.QtCore import Qt
 
 from app import NetManager
@@ -8,10 +8,8 @@ from .extended_line_edit import Extended_QLineEdit
 
 
 class NetParamsBox(QGroupBox):
-	def __init__(self, net_manager):
+	def __init__(self):
 		super().__init__()
-
-		self.net_manager: NetManager = net_manager
 
 		self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
 
@@ -34,12 +32,12 @@ class NetParamsBox(QGroupBox):
 		buttons_container_widget.layout().addWidget(self.build_net_button)
 
 		self.train_net_button = QPushButton("Start Training")
-		self.train_net_button.clicked.connect(self.train_net)
+		self.train_net_button.setEnabled(False)
 		buttons_container_widget.layout().addWidget(self.train_net_button)
 
-		self.train_net_button = QPushButton("Pause Training")
-		self.train_net_button.clicked.connect(self.train_net)
-		buttons_container_widget.layout().addWidget(self.train_net_button)
+		self.stop_training_button = QPushButton("Stop Training")
+		self.stop_training_button.setEnabled(False)
+		buttons_container_widget.layout().addWidget(self.stop_training_button)
 
 		params_grid_widget.layout().addWidget(QLabel('Net Name'), 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
 		self.name_input = Extended_QLineEdit()
@@ -60,7 +58,21 @@ class NetParamsBox(QGroupBox):
 		self.hidden_layer_count_input.setRange(0, 2000000)
 		params_grid_widget.layout().addWidget(self.hidden_layer_count_input, 1, 5)
 
-	def train_net(self):
-		return
-		# self.net_manager.build_net(self.name_input.text,
-		# 	self.input_count_input.value(), self.input_count_input.value(), )
+		# event bindings
+
+		self.build_net_button.clicked.connect(self.__build_net)
+		self.train_net_button.clicked.connect(self.__start_training)
+		self.stop_training_button.clicked.connect(self.__stop_training)
+
+	def __build_net(self):
+		self.train_net_button.setEnabled(True)
+
+	def __start_training(self):
+		self.build_net_button.setEnabled(False)
+		self.train_net_button.setEnabled(False)
+		self.stop_training_button.setEnabled(True)
+
+	def __stop_training(self):
+		self.build_net_button.setEnabled(True)
+		self.train_net_button.setEnabled(True)
+		self.stop_training_button.setEnabled(False)
