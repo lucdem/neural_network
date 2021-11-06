@@ -9,9 +9,8 @@ from app import NeuronTypeEnum
 
 
 class LayerParamsBox(QGroupBox):
-	def __init__(self, net_manager):
+	def __init__(self):
 		super().__init__()
-		self.net_manager = net_manager
 
 		self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Maximum)
 

@@ -1,15 +1,10 @@
 from app.net_manager import NetManager
 from gui.text_output_widget import TextOutputWidget
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMenu, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMenu
 
-from .data_set_box import DataSetBox
 from .graph_wrapper import GraphWrapper
-from .net_params_box import NetParamsBox
-from .training_params_box import TrainingParamsBox
-from .layer_params_box import LayerParamsBox
 from .net_list_widget import NetListWidget
 from .net_stacked_layout import NetStackedLayout
-from gui import net_stacked_layout
 
 
 class MainWindow(QWidget):
@@ -40,7 +35,6 @@ class MainWindow(QWidget):
 
 		# event/signal bindings
 
-		self.net_list_widget.selected_net_changed_signal.connect(self.net_manager.change_selected_net)
 		self.net_manager.update_name_listeners.append(self.net_list_widget.change_selected_net_name)
 
 	def show(self):
@@ -53,10 +47,3 @@ class MainWindow(QWidget):
 		new_item_action.triggered.connect(self.print)
 
 		menu.exec(event.globalPos())
-
-	def build_net(self):
-		name = self.net_params_box.name_input.text()
-		input_count = self.net_params_box.input_count_input.value()
-		layer_sizes = self.layer_params_box.get_layer_sizes()
-		neuron_type = self.layer_params_box.default_layer_type_input.selected_type()
-		self.net_manager.build_net(name, neuron_type, input_count, layer_sizes)

@@ -4,9 +4,8 @@ from PyQt5.QtCore import Qt
 
 
 class TrainingParamsBox(QGroupBox):
-	def __init__(self, net_manager):
+	def __init__(self):
 		super().__init__()
-		self.net_manager = net_manager
 
 		self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Maximum)
 
