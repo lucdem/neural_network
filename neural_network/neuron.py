@@ -1,5 +1,5 @@
 from __future__ import annotations
-from math import exp, tanh, isinf
+from math import exp, isnan, tanh, isinf
 from random import uniform
 from abc import ABC, abstractmethod
 from typing import List, Tuple, TypeVar
@@ -54,7 +54,7 @@ class Neuron(ABC):
 		for i, weight_change in enumerate(weight_changes):
 			self.weights[i] -= weight_change * learning_rate
 		self.bias -= delta * learning_rate
-		if any(isinf(w) for w in self.weights) or isinf(self.bias):
+		if any(isinf(w) or isnan(w) for w in self.weights) or isinf(self.bias) or isnan(self.bias):
 			raise Exception("Neuron paramters inf or Nan, this is likely due to an exploding gradient problem")
 
 	def add_inputs(self, new_input_count):
