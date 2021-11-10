@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import List, Type, Tuple
+from typing import List, Type, Tuple, Union
 
 from .neuron import Neuron, SigmoidLogisticNeuron
 from .layer import Layer
 from .cost_function import CostFunction, MeanSquareError
-from .sample_data import SampleData
+from .data.data import Data, DataSample
 from .reverse_list_enumerate import reverse_list_enumerate
 from .matrix import vec_element_wise_multiplication, matrix_sum, vec_sum
 
@@ -51,10 +51,10 @@ class NeuralNetwork:
 		return all_layer_output, all_layer_z_vectors
 
 	def train(self, epochs: int, learning_rate: float, batch_size: int,
-		training_data: SampleData, validation_data: SampleData,
+		training_data: Data, validation_data: Data = None,
 		cost_function: Type[CostFunction] = MeanSquareError):
 
-		training_batches = training_data.split_random_batches(batch_size)
+		training_batches = training_data.split_batches(batch_size)
 
 		for i in range(epochs):
 			for batch in training_batches:
@@ -63,12 +63,12 @@ class NeuralNetwork:
 
 		# TODO: validation
 
-	def __train_batch(self, batch: SampleData, learning_rate: float, cost_function: Type[CostFunction]):
+	def __train_batch(self, batch: DataSample, learning_rate: float, cost_function: Type[CostFunction]):
 		all_layer_weight_changes: List[List[List[float]]] = []
 		all_layer_deltas: List[List[float]] = []
 
 		for data_point_index, data_point in enumerate(batch.data_points):
-			all_layer_outputs, all_layer_zs = self.output(data_point.input)
+			all_layer_outputs, all_layer_zs = self.output(data_point.flat_input)
 			next_layer_delta = 1 # initializing variable, self.__layer_changes ignores this value for output_layer
 			for layer_index, layer in reverse_list_enumerate(self.layers):
 				weight_changes, delta = self.__layer_changes(layer_index, data_point, all_layer_outputs,
@@ -76,6 +76,9 @@ class NeuralNetwork:
 				if data_point_index == 0:
 					all_layer_weight_changes.append(weight_changes)
 					all_layer_deltas.append(delta)
+					if len(all_layer_weight_changes) == self.layer_count:
+						all_layer_weight_changes.reverse()
+						all_layer_deltas.reverse()
 				else:
 					all_layer_weight_changes[layer_index] = matrix_sum(all_layer_weight_changes[layer_index], weight_changes)
 					all_layer_deltas[layer_index] = vec_sum(all_layer_deltas[layer_index], delta)
@@ -95,7 +98,7 @@ class NeuralNetwork:
 			delta = self.__layer_delta(layer_index, all_layer_zs[layer_index], next_layer_delta)
 
 		if layer_index == -self.layer_count: # first layer
-			previous_layer_output = data_point.input
+			previous_layer_output = data_point.flat_input
 		else:
 			previous_layer_output = all_layer_outputs[layer_index - 1]
 
@@ -123,10 +126,10 @@ class NeuralNetwork:
 				layer_delta[i] += next_layer_neuron_delta * next_layer.neurons[k].weights[i]
 		return vec_element_wise_multiplication(layer_derivatives, layer_delta)
 
-	def classification_accuracy(self, validation_data: SampleData) -> Tuple[List[float], float]:
+	def classification_accuracy(self, validation_data: DataSample) -> float:
 		successes = 0
 		for data in validation_data.data_points:
-			output = self.output(data.input)[0][-1]
+			output = self.output(data.flat_input)[0][-1]
 
 			classification = 0
 			biggest = float('-inf')
