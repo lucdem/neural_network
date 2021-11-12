@@ -1,15 +1,13 @@
-from typing import List, Any, Iterable
+from typing import List, Any
+
+import numpy
 
 
 class DataPoint:
 	def __init__(self, input: List[Any], expected_output: List[float]):
-		self.input = input
-		self.expected_output = expected_output
-		self.dimensions: List[int] = []
-		x = input[0]
-		while isinstance(x, List):
-			self.dimensions.append(len(x))
-			x = x[0]
+		self.input: numpy.ndarray = numpy.array(input)
+		self.expected_output: numpy.ndarray = numpy.array(expected_output)
+		self.dimensions = self.input.shape
 
 	@classmethod
 	def fromDict(cls, d):
@@ -17,13 +15,4 @@ class DataPoint:
 
 	@property
 	def flat_input(self):
-		return list(DataPoint.__flatten(self.input))
-
-	@classmethod
-	def __flatten(cls, l: List[Any]) -> Iterable[float]:
-		for ele in l:
-			if isinstance(ele, List):
-				for nested_ele in DataPoint.__flatten(ele):
-					yield nested_ele
-			else:
-				yield ele
+		return numpy.matrix.flatten(self.input)

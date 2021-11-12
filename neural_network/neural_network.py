@@ -1,12 +1,15 @@
 from __future__ import annotations
-from typing import List, Type, Tuple, Union
+from typing import List, Type, Tuple
+
+import numpy
+
+from neural_network.data.data_point import DataPoint
 
 from .neuron import Neuron, SigmoidLogisticNeuron
 from .layer import Layer
 from .cost_function import CostFunction, MeanSquareError
 from .data.data import Data, DataSample
 from .reverse_list_enumerate import reverse_list_enumerate
-from .matrix import vec_element_wise_multiplication, matrix_sum, vec_sum
 
 
 class NeuralNetwork:
@@ -39,9 +42,9 @@ class NeuralNetwork:
 		else:
 			return 0
 
-	def output(self, input: List[float]) -> Tuple[List[List[float]], List[List[float]]]:
-		all_layer_output: List[List[float]] = []
-		all_layer_z_vectors: List[List[float]] = []
+	def output(self, input: numpy.ndarray) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
+		all_layer_output: List[numpy.ndarray] = []
+		all_layer_z_vectors: List[numpy.ndarray] = []
 		layer_input = input
 		for layer in self.layers:
 			layer_output, z_vector = layer.output(layer_input)
@@ -64,24 +67,18 @@ class NeuralNetwork:
 		# TODO: validation
 
 	def __train_batch(self, batch: DataSample, learning_rate: float, cost_function: Type[CostFunction]):
-		all_layer_weight_changes: List[List[List[float]]] = []
-		all_layer_deltas: List[List[float]] = []
 
-		for data_point_index, data_point in enumerate(batch.data_points):
-			all_layer_outputs, all_layer_zs = self.output(data_point.flat_input)
-			next_layer_delta = 1 # initializing variable, self.__layer_changes ignores this value for output_layer
+		all_layer_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
+		all_layer_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
+
+		for data_point in batch.data_points:
+			all_layer_outputs, all_layer_zs = self.output(data_point.input)
+			next_layer_delta = numpy.array([]) # initializing variable, self.__layer_changes ignores this value for output_layer
 			for layer_index, layer in reverse_list_enumerate(self.layers):
-				weight_changes, delta = self.__layer_changes(layer_index, data_point, all_layer_outputs,
+				weight_changes, delta = self.__calculate_layer_weight_changes(layer_index, data_point, all_layer_outputs,
 					all_layer_zs, next_layer_delta, cost_function, batch.size)
-				if data_point_index == 0:
-					all_layer_weight_changes.append(weight_changes)
-					all_layer_deltas.append(delta)
-					if len(all_layer_weight_changes) == self.layer_count:
-						all_layer_weight_changes.reverse()
-						all_layer_deltas.reverse()
-				else:
-					all_layer_weight_changes[layer_index] = matrix_sum(all_layer_weight_changes[layer_index], weight_changes)
-					all_layer_deltas[layer_index] = vec_sum(all_layer_deltas[layer_index], delta)
+				all_layer_weight_changes[layer_index] = all_layer_weight_changes[layer_index] + weight_changes
+				all_layer_deltas[layer_index] = all_layer_deltas[layer_index] + delta
 				next_layer_delta = delta
 
 		for layer_index, layer in enumerate(self.layers):
@@ -89,42 +86,25 @@ class NeuralNetwork:
 
 		return all_layer_weight_changes, all_layer_deltas
 
-	def __layer_changes(self, layer_index, data_point, all_layer_outputs,
-		all_layer_zs, next_layer_delta, cost_function, batch_size):
+	def __calculate_layer_weight_changes(self, layer_index, data_point: DataPoint, all_layer_outputs: List[numpy.ndarray],
+		all_layer_zs: List[numpy.ndarray], next_layer_delta: numpy.ndarray,
+		cost_function, batch_size) -> Tuple[numpy.ndarray, numpy.ndarray]:
+
 		if layer_index == -1: # output layer
-			delta = self.__output_layer_delta(cost_function, all_layer_outputs[-1],
-				data_point.expected_output, batch_size, all_layer_zs[-1])
+			delta = self.layers[layer_index].calculate_output_layer_delta(cost_function, all_layer_outputs[layer_index],
+				data_point.expected_output, all_layer_zs[layer_index], batch_size)
 		else:
-			delta = self.__layer_delta(layer_index, all_layer_zs[layer_index], next_layer_delta)
+			delta = self.layers[layer_index].calculate_layer_delta(all_layer_zs[layer_index],
+				self.layers[layer_index + 1], next_layer_delta)
 
 		if layer_index == -self.layer_count: # first layer
-			previous_layer_output = data_point.flat_input
+			previous_layer_output = numpy.array([data_point.input])
 		else:
-			previous_layer_output = all_layer_outputs[layer_index - 1]
+			previous_layer_output = numpy.array([all_layer_outputs[layer_index - 1]])
 
-		layer_weight_changes: List[List[float]] = []
-		for i, neuron in enumerate(self.layers[layer_index].neurons):
-			neuron_weight_changes = [0] * neuron.input_count
-			for k, input in enumerate(previous_layer_output):
-				neuron_weight_changes[k] = input * delta[i]
-			layer_weight_changes.append(neuron_weight_changes)
+		layer_weight_changes = numpy.array([delta]).T @ previous_layer_output
 
 		return layer_weight_changes, delta
-
-	def __output_layer_delta(self, cost_function, output, expected_output,
-		batch_size, layer_z) -> List[float]:
-		cost_function_derivative = cost_function.derivative(output, expected_output, batch_size)
-		return vec_element_wise_multiplication(cost_function_derivative, self.layers[-1].activation_derivative(layer_z))
-
-	def __layer_delta(self, layer_index, layer_z, next_layer_delta) -> List[float]:
-		layer = self.layers[layer_index]
-		next_layer = self.layers[layer_index + 1]
-		layer_delta = [0.0] * layer.size
-		layer_derivatives = self.layers[layer_index].activation_derivative(layer_z)
-		for i in range(layer.size):
-			for k, next_layer_neuron_delta in enumerate(next_layer_delta):
-				layer_delta[i] += next_layer_neuron_delta * next_layer.neurons[k].weights[i]
-		return vec_element_wise_multiplication(layer_derivatives, layer_delta)
 
 	def classification_accuracy(self, validation_data: DataSample) -> float:
 		successes = 0

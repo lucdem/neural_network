@@ -1,10 +1,10 @@
 from __future__ import annotations
-from math import exp, isnan, tanh, isinf
+from math import exp, tanh
 from random import uniform
 from abc import ABC, abstractmethod
 from typing import List, Tuple, TypeVar
 
-from .matrix import vec_element_wise_multiplication
+import numpy
 
 
 __T = TypeVar('__T', bound= 'Neuron')
@@ -19,15 +19,15 @@ class Neuron(ABC):
 	random_bias_upper_limit = -0.5
 
 	def __init__(self, input_count: int):
-		weights = [0.0] * input_count
+		weights = numpy.zeros(input_count)
 		for i in range(input_count):
 			weights[i] = uniform(self.__class__.random_weight_lower_limit, self.__class__.random_weight_upper_limit)
-		self.weights: List[float] = weights
+		self.weights: numpy.ndarray = weights
 		self.bias: float = uniform(self.__class__.random_bias_lower_limit, self.__class__.random_bias_upper_limit)
 
 	@property
 	def input_count(self):
-		return len(self.weights)
+		return self.weights.size
 
 	@classmethod
 	@abstractmethod
@@ -43,23 +43,16 @@ class Neuron(ABC):
 		"""
 		pass
 
-	def z(self, input):
-		return self.bias + sum(vec_element_wise_multiplication(input, self.weights))
+	def z(self, input: numpy.ndarray):
+		return self.bias + numpy.dot(input, self.weights)
 
-	def output(self, input: List[float]) -> Tuple[float, float]:
+	def output(self, input: numpy.ndarray) -> Tuple[float, float]:
 		z = self.z(input)
 		return self.__class__.activation(z), z
 
-	def update(self, weight_changes: List[float], delta: float, learning_rate: float):
-		for i, weight_change in enumerate(weight_changes):
-			self.weights[i] -= weight_change * learning_rate
+	def update(self, weight_changes: numpy.ndarray, delta: float, learning_rate: float):
+		self.weights = numpy.subtract(self.weights, weight_changes * learning_rate)
 		self.bias -= delta * learning_rate
-		if any(isinf(w) or isnan(w) for w in self.weights) or isinf(self.bias) or isnan(self.bias):
-			raise Exception("Neuron paramters inf or Nan, this is likely due to an exploding gradient problem")
-
-	def add_inputs(self, new_input_count):
-		for i in range(new_input_count):
-			self.weights.append(uniform(Neuron.random_weight_lower_limit, Neuron.random_weight_upper_limit))
 
 
 class SigmoidLogisticNeuron(Neuron):
