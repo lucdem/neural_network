@@ -22,23 +22,23 @@ class DataSample:
 
 	@property
 	def input_count(self):
-		return len(self.data_points[0].flat_input)
+		return self.data_points[0].input.size
 
 	@property
 	def output_count(self):
-		return len(self.data_points[0].expected_output)
+		return self.data_points[0].expected_output.size
 
 	@classmethod
 	def __validate_data_points(cls, data_points: List[DataPoint]):
-		input_count = len(data_points[0].flat_input)
-		output_count = len(data_points[0].expected_output)
-		for data in data_points:
-			if len(data.flat_input) != input_count:
+		input_count = data_points[0].input.size
+		output_count = data_points[0].expected_output.size
+		for i in range(1, len(data_points)):
+			if data_points[i].input.size != input_count:
 				raise Exception("Data points with inputs of different sizes included in the same SampleData")
-			if len(data.expected_output) != output_count:
+			if data_points[i].expected_output.size != output_count:
 				raise Exception("Data points with outputs of different sizes included in the same SampleData")
 
-	def get_input(self) -> Iterable[List[float]]:
+	def get_flat_input(self) -> Iterable[List[float]]:
 		for data_point in self.data_points:
 			yield data_point.flat_input
 
