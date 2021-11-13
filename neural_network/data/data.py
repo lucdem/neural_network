@@ -1,11 +1,15 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from typing import Iterable, List
 
 from .data_point import DataPoint
 
 
 class Data(ABC):
+	@abstractproperty
+	def get_data_points(self) -> List[DataPoint]:
+		pass
+
 	@abstractmethod
 	def split_batches(self, batch_size: int) -> Iterable[DataSample]:
 		pass
@@ -27,6 +31,10 @@ class DataSample:
 	@property
 	def output_count(self):
 		return self.data_points[0].expected_output.size
+
+	@property
+	def get_data_points(self) -> List[DataPoint]:
+		return self.data_points
 
 	@classmethod
 	def __validate_data_points(cls, data_points: List[DataPoint]):

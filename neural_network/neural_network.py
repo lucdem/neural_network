@@ -43,48 +43,54 @@ class NeuralNetwork:
 			return 0
 
 	def output(self, input: numpy.ndarray) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
-		all_layer_output: List[numpy.ndarray] = []
-		all_layer_z_vectors: List[numpy.ndarray] = []
+		all_layers_outputs: List[numpy.ndarray] = []
+		all_layers_zs: List[numpy.ndarray] = []
 		layer_input = input
 		for layer in self.layers:
 			layer_output, z_vector = layer.output(layer_input)
-			all_layer_output.append(layer_output)
-			all_layer_z_vectors.append(z_vector)
+			all_layers_outputs.append(layer_output)
+			all_layers_zs.append(z_vector)
 			layer_input = layer_output
-		return all_layer_output, all_layer_z_vectors
+		return all_layers_outputs, all_layers_zs
 
 	def train(self, epochs: int, learning_rate: float, batch_size: int,
-		training_data: Data, validation_data: Data = None,
-		cost_function: Type[CostFunction] = MeanSquareError):
+		training_data: Data, cost_function: Type[CostFunction] = MeanSquareError):
 
 		training_batches = training_data.split_batches(batch_size)
-
 		for i in range(epochs):
 			for batch in training_batches:
 				w, b = self.__train_batch(batch, learning_rate, cost_function)
-				# debug = 1
 
-		# TODO: validation
+	def validate(self, validation_data: Data, cost_function: CostFunction) -> Tuple[float, float]:
+		data_points = validation_data.get_data_points()
+		cost_func_errors = numpy.zeros(len(data_points))
+		correct_classification = 0
+		for i, data_point in enumerate(data_points):
+			output = self.output(data_point.input)[0][-1]
+			cost_func_errors[i] = numpy.average(cost_function.func(output, data_point.expected_output, 1))
+			if numpy.argmax(output) == numpy.argmax(data_point.expected_output):
+				correct_classification += 1
+		return numpy.average(cost_func_errors), (correct_classification / len(data_points)) * 100
 
 	def __train_batch(self, batch: DataSample, learning_rate: float, cost_function: Type[CostFunction]):
 
-		all_layer_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
-		all_layer_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
+		all_layers_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
+		all_layers_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
 
 		for data_point in batch.data_points:
-			all_layer_outputs, all_layer_zs = self.output(data_point.input)
+			all_layers_outputs, all_layers_zs = self.output(data_point.input)
 			next_layer_delta = numpy.array([]) # initializing variable, self.__layer_changes ignores this value for output_layer
 			for layer_index, layer in reverse_list_enumerate(self.layers):
-				weight_changes, delta = self.__calculate_layer_weight_changes(layer_index, data_point, all_layer_outputs,
-					all_layer_zs, next_layer_delta, cost_function, batch.size)
-				all_layer_weight_changes[layer_index] = all_layer_weight_changes[layer_index] + weight_changes
-				all_layer_deltas[layer_index] = all_layer_deltas[layer_index] + delta
+				weight_changes, delta = self.__calculate_layer_weight_changes(layer_index, data_point, all_layers_outputs,
+					all_layers_zs, next_layer_delta, cost_function, batch.size)
+				all_layers_weight_changes[layer_index] = all_layers_weight_changes[layer_index] + weight_changes
+				all_layers_deltas[layer_index] = all_layers_deltas[layer_index] + delta
 				next_layer_delta = delta
 
 		for layer_index, layer in enumerate(self.layers):
-			layer.update(all_layer_weight_changes[layer_index], all_layer_deltas[layer_index], learning_rate)
+			layer.update(all_layers_weight_changes[layer_index], all_layers_deltas[layer_index], learning_rate)
 
-		return all_layer_weight_changes, all_layer_deltas
+		return all_layers_weight_changes, all_layers_deltas
 
 	def __calculate_layer_weight_changes(self, layer_index, data_point: DataPoint, all_layer_outputs: List[numpy.ndarray],
 		all_layer_zs: List[numpy.ndarray], next_layer_delta: numpy.ndarray,
@@ -105,26 +111,3 @@ class NeuralNetwork:
 		layer_weight_changes = numpy.array([delta]).T @ previous_layer_output
 
 		return layer_weight_changes, delta
-
-	def classification_accuracy(self, validation_data: DataSample) -> float:
-		successes = 0
-		for data in validation_data.data_points:
-			output = self.output(data.flat_input)[0][-1]
-
-			classification = 0
-			biggest = float('-inf')
-			for i, value in enumerate(output):
-				if value > biggest:
-					biggest = value
-					classification = i
-
-			expected_classification = 0
-			biggest = float('-inf')
-			for i, value in enumerate(data.expected_output):
-				if value > biggest:
-					biggest = value
-					expected_classification = i
-
-			if classification != expected_classification:
-				successes += 1
-		return successes / validation_data.size
