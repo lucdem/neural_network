@@ -20,5 +20,4 @@ class DataSetBox(QGroupBox):
 		self.layout().addWidget(self.file_dialog_button)
 
 	def file_dialog(self):
-		self.file_path_input.setText(QFileDialog.getOpenFileName(self, filter="CSV (*.csv);;JSON (*.json)")[0])
-		pass
+		self.file_path_input.setText(QFileDialog.getOpenFileName(self, filter="JSON lines (*.jsonl)")[0])

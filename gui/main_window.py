@@ -1,10 +1,13 @@
-from app.net_manager import NetManager
-from gui.text_output_widget import TextOutputWidget
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMenu
 
-from .graph_wrapper import GraphWrapper
+from app.net_manager import NetManager
+
+from .text_output_widget import TextOutputWidget
+from .plotting.graphics_wrapper import GraphicsWrapper
 from .net_list_widget import NetListWidget
 from .net_stacked_layout import NetStackedLayout
+
+from random import uniform
 
 
 class MainWindow(QWidget):
@@ -12,7 +15,7 @@ class MainWindow(QWidget):
 		super().__init__()
 
 		self.net_manager: NetManager = net_manager
-		self.graph_wrapper = GraphWrapper()
+		self.graph_wrapper = GraphicsWrapper(net_manager)
 
 		# build window
 		self.top_layer_layout = QHBoxLayout()
@@ -36,6 +39,11 @@ class MainWindow(QWidget):
 		# event/signal bindings
 
 		self.net_manager.update_name_listeners.append(self.net_list_widget.change_selected_net_name)
+		self.net_stacked_layout.training_started.connect(self.graph_wrapper.create_plot_data)
+		self.net_stacked_layout.training_progress.connect(self.graph_wrapper.update_graphs)
+		self.net_stacked_layout.training_progress.connect(self.print_training_progress_msg)
+
+		self.coisacoisacoisa = 0
 
 	def show(self):
 		self.showMaximized()
@@ -43,7 +51,15 @@ class MainWindow(QWidget):
 	def contextMenuEvent(self, event):
 		menu = QMenu(self)
 
-		new_item_action = menu.addAction('AAAA')
-		new_item_action.triggered.connect(self.print)
+		test = menu.addAction('test')
+		test.triggered.connect(self.test)
 
 		menu.exec(event.globalPos())
+
+	def test(self):
+		self.coisacoisacoisa += 1
+		self.net_manager.emit_training_progression(self.coisacoisacoisa, 100, uniform(0, 10000), uniform(0, 100))
+
+	def print_training_progress_msg(self, net_id, epoch, cost, acc):
+		self.text_output.message('training...', net_name = self.net_manager.net_by_id[net_id].name,
+			epoch = epoch, cost = cost, acc = acc)
