@@ -1,10 +1,8 @@
-from PyQt5.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel, 
+from PyQt5.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 	QPushButton, QSpinBox, QVBoxLayout, QWidget, QSizePolicy)
 from PyQt5.QtCore import Qt
 
-from app import NetManager
-
-from .extended_line_edit import Extended_QLineEdit
+from gui.extended_line_edit import Extended_QLineEdit
 
 
 class NetParamsBox(QGroupBox):
@@ -31,9 +29,9 @@ class NetParamsBox(QGroupBox):
 		self.build_net_button = QPushButton("Build Network")
 		buttons_container_widget.layout().addWidget(self.build_net_button)
 
-		self.train_net_button = QPushButton("Start Training")
-		self.train_net_button.setEnabled(False)
-		buttons_container_widget.layout().addWidget(self.train_net_button)
+		self.start_training_button = QPushButton("Start Training")
+		self.start_training_button.setEnabled(False)
+		buttons_container_widget.layout().addWidget(self.start_training_button)
 
 		self.stop_training_button = QPushButton("Stop Training")
 		self.stop_training_button.setEnabled(False)
@@ -57,22 +55,3 @@ class NetParamsBox(QGroupBox):
 		self.hidden_layer_count_input = QSpinBox()
 		self.hidden_layer_count_input.setRange(0, 2000000)
 		params_grid_widget.layout().addWidget(self.hidden_layer_count_input, 1, 5)
-
-		# event bindings
-
-		self.build_net_button.clicked.connect(self.__build_net)
-		self.train_net_button.clicked.connect(self.__start_training)
-		self.stop_training_button.clicked.connect(self.__stop_training)
-
-	def __build_net(self):
-		self.train_net_button.setEnabled(True)
-
-	def __start_training(self):
-		self.build_net_button.setEnabled(False)
-		self.train_net_button.setEnabled(False)
-		self.stop_training_button.setEnabled(True)
-
-	def __stop_training(self):
-		self.build_net_button.setEnabled(True)
-		self.train_net_button.setEnabled(True)
-		self.stop_training_button.setEnabled(False)

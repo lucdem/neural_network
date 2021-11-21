@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 from neural_network import SigmoidLogisticNeuron, SigmoidTanhNeuron, ReLU_Neuron, LeakyReLU_Neuron, LinearNeuron
 

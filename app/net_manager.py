@@ -1,18 +1,17 @@
-from app.neuron_type_enum import NeuronTypeEnum
-from typing import List, Callable, Dict
+from typing import Iterable, List, Callable, Dict, Tuple
 
-from neural_network import LinearNeuron
+from neural_network import LinearNeuron, JsonlDataStream, MeanSquareError
 from .extended_neural_network import ExtendedNeuralNetwork
+from .data_classes.training_params import TrainingParams
 
 
-class NetManager():
+class NetManager:
 	def __init__(self):
 		self.net_by_id: Dict[int, ExtendedNeuralNetwork] = {}
 		self.selected_net_id = -1
 		self.last_assigned_id = -1
 		self.selection_change_listeners: List[Callable] = []
 		self.update_name_listeners: List[Callable] = []
-		# self.net_removal_listeners: List[Callable] = []
 
 	@property
 	def selected_net(self) -> ExtendedNeuralNetwork:
@@ -21,12 +20,22 @@ class NetManager():
 	def new_net(self):
 		net = ExtendedNeuralNetwork("New net", LinearNeuron, 0, [0])
 		self.last_assigned_id += 1
-		id = self.last_assigned_id
-		self.net_by_id[id] = net
-		self.change_selected_net(id)
+		last_id = self.last_assigned_id
+		self.net_by_id[last_id] = net
+		self.change_selected_net(last_id)
 
 	def build_net(self, name, neuron_type, input_count, layer_sizes):
 		self.net_by_id[self.last_assigned_id] = ExtendedNeuralNetwork(name, neuron_type, input_count, layer_sizes)
+
+	def train_net(self, net_id, params: TrainingParams,
+		cost_function = MeanSquareError) -> Iterable[Tuple[int, float, float]]:
+
+		training_data = JsonlDataStream(params.training_data_path)
+		validation_data = JsonlDataStream(params.validation_data_path)
+		for epoch in range(params.max_epochs):
+			self.net_by_id[net_id].train(1, params.learning_rate, params.batch_size, training_data, cost_function)
+			cost, acc = self.net_by_id[net_id].validate(validation_data, cost_function)
+			yield epoch, cost, acc
 
 	# def remove_net(self, id):
 	# 	self.net_by_id.pop(id)

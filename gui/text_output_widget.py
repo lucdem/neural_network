@@ -5,9 +5,9 @@ class TextOutputWidget(QPlainTextEdit):
 	def __init__(self):
 		super().__init__()
 		self.setReadOnly(True)
-		for i in range(100):
-			self.message("hello")
 		self.setBackgroundVisible(False)
 
-	def message(self, string):
-		self.appendPlainText(string)
+	def message(self, msg: str, **kwargs):
+		if len(kwargs) > 0:
+			msg += f' ### {kwargs}'
+		self.appendPlainText(msg)
