@@ -61,11 +61,12 @@ class LayerParamsBox(QGroupBox):
 		self.output_layer_box.size_input.setValue(size)
 
 	def change_hidden_layer_count(self, count):
-		if count > self.scroll_area_layout.count() - 2:
+		while count > self.scroll_area_layout.count() - 2:
 			self.add_hidden_layer(HiddenLayerInnerBox(
 				self.default_layer_type_input.itemData(self.default_layer_type_input.currentIndex())))
-		elif count < self.scroll_area_layout.count() - 2:
-			self.remove_layer()
+		else:
+			while count < self.scroll_area_layout.count() - 2:
+				self.remove_layer()
 
 	def get_layer_sizes(self):
 		sizes = [inner_box.size_input.value() for inner_box in self.hidden_layers_inner_boxes]
