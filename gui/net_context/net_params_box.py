@@ -39,6 +39,7 @@ class NetParamsBox(QGroupBox):
 
 		params_grid_widget.layout().addWidget(QLabel('Net Name'), 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
 		self.name_input = Extended_QLineEdit()
+		self.name_input.setText("New net")
 		params_grid_widget.layout().addWidget(self.name_input, 0, 1, 1, 5)
 
 		params_grid_widget.layout().addWidget(QLabel('Input count'), 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
