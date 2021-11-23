@@ -3,14 +3,18 @@ from pyqtgraph import PlotDataItem
 
 
 class NetPlotData:
-	def __init__(self, max_epochs, plot_interval = 1) -> None:
-		size = max_epochs // plot_interval
-		self.epochs = numpy.array(range(0, max_epochs, plot_interval))
-		self.cost = numpy.array([-10.0] * size)
+	def __init__(self, max_epochs, legend_label, pen_params) -> None:
+		self.epochs = numpy.array(range(0, max_epochs))
+		self.cost = numpy.array([-10.0] * max_epochs)
 		self.max_cost = 0
-		self.acc = numpy.array([-10.0] * size)
-		self.cost_data_item = PlotDataItem(self.epochs, self.cost)
-		self.acc_data_item = PlotDataItem(self.epochs, self.acc)
+		self.acc = numpy.array([-10.0] * max_epochs)
+
+		self.pen_params = pen_params
+
+		self.cost_data_item = PlotDataItem(self.epochs, self.cost, name = legend_label)
+		self.cost_data_item.setPen(self.pen_params)
+		self.acc_data_item = PlotDataItem(self.epochs, self.acc, name = legend_label)
+		self.acc_data_item.setPen(self.pen_params)
 
 	def add_point(self, epoch, cost, acc):
 		self.cost[epoch] = cost
