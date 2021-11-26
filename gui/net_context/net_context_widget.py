@@ -59,14 +59,16 @@ class NetContextWidget(QWidget):
 		self.training_worker.finished.connect(self.training_thread.quit)
 		self.training_worker.finished.connect(self.stop_training)
 
+		self._check_values()
+
 	def build_net(self):
 		self.net_params_box.start_training_button.setEnabled(True)
 
 		name = self.net_params_box.name_input.text()
 		input_count = self.net_params_box.input_count_input.value()
 		layer_sizes = self.layer_params_box.get_layer_sizes()
-		neuron_type = self.layer_params_box.default_layer_type_input.selected_type()
-		self.net_manager.build_net(name, neuron_type, input_count, layer_sizes)
+		neuron_type = self.layer_params_box.default_layer_type_input.get_selected_type().value
+		self.net_manager.build_net(neuron_type, input_count, layer_sizes, name)
 
 	def train_net(self):
 		self.net_params_box.build_net_button.setEnabled(False)
@@ -90,6 +92,12 @@ class NetContextWidget(QWidget):
 		self.net_params_box.stop_training_button.setEnabled(False)
 
 		self.training_worker.stop = True
+
+	def _check_values(self):
+		net = self.net_manager.net_by_id[self.net_id]
+		self.net_params_box._check_values(self.net_manager.net_by_id[self.net_id])
+		if net.layer_count > 0:
+			self.layer_params_box._check_values(self.net_manager.net_by_id[self.net_id].layers)
 
 
 class NetTrainingWorker(QObject):

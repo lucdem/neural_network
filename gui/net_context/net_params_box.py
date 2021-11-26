@@ -39,7 +39,6 @@ class NetParamsBox(QGroupBox):
 
 		params_grid_widget.layout().addWidget(QLabel('Net Name'), 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
 		self.name_input = Extended_QLineEdit()
-		self.name_input.setText("New net")
 		params_grid_widget.layout().addWidget(self.name_input, 0, 1, 1, 5)
 
 		params_grid_widget.layout().addWidget(QLabel('Input count'), 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -56,3 +55,9 @@ class NetParamsBox(QGroupBox):
 		self.hidden_layer_count_input = QSpinBox()
 		self.hidden_layer_count_input.setRange(0, 2000000)
 		params_grid_widget.layout().addWidget(self.hidden_layer_count_input, 1, 5)
+
+	def _check_values(self, net):
+		self.name_input.setText(net.name)
+		self.input_count_input.setValue(net.input_count)
+		self.output_count_input.setValue(net.output_count)
+		self.hidden_layer_count_input.setValue(len(net.layers) - 1)

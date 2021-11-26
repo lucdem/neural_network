@@ -8,10 +8,13 @@ class LayerTypeComboBox(QComboBox):
 		super().__init__()
 
 		for name, member in NeuronTypeEnum.__members__.items():
-			self.addItem(name, member.value)
+			self.addItem(name, member)
 
 		if initial_type is not None:
-			self.setCurrentIndex(self.findData(initial_type))
+			self.set_selected_type(initial_type)
 
-	def selected_type(self):
+	def get_selected_type(self) -> NeuronTypeEnum:
 		return self.currentData()
+
+	def set_selected_type(self, type: NeuronTypeEnum):
+		self.setCurrentIndex(self.findData(type))

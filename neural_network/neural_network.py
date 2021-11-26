@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Type, Tuple
+from typing import List, Type, Tuple, TypeVar
 
 import numpy
 
@@ -12,6 +12,9 @@ from .data.data import Data, DataSample
 from .reverse_list_enumerate import reverse_list_enumerate
 
 
+__T = TypeVar('__T', bound= 'NeuralNetwork')
+
+
 class NeuralNetwork:
 	def __init__(self, neuron_type: Type[Neuron], input_count, layer_sizes: List[int]):
 		self.layers = [Layer(neuron_type, input_count, layer_sizes[0])]
@@ -19,8 +22,8 @@ class NeuralNetwork:
 			self.layers.append(Layer(neuron_type, layer_sizes[i - 1], layer_sizes[i]))
 
 	@classmethod
-	def create_from_layers(cls, layers: List[Layer]) -> NeuralNetwork:
-		net = NeuralNetwork(SigmoidLogisticNeuron, 0, [0])
+	def create_from_layers(cls: Type[__T], layers: List[Layer]) -> __T:
+		net = cls(SigmoidLogisticNeuron, 0, [0])
 		net.layers = layers
 		return net
 
