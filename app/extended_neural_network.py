@@ -10,7 +10,7 @@ from .neuron_type_enum import NeuronTypeEnum
 
 
 class ExtendedNeuralNetwork(NeuralNetwork):
-	def __init__(self, name, neuron_type: Type[Neuron], input_count, layer_sizes: List[int]):
+	def __init__(self, neuron_type: Type[Neuron], input_count, layer_sizes: List[int], name = "New net"):
 		super().__init__(neuron_type, input_count, layer_sizes)
 		self.name = name
 
@@ -58,7 +58,9 @@ class NetJsonDecoder(JSONDecoder):
 	def _net_decode(self, dict: Dict):
 		weights = dict.get('weight_matrix')
 		if weights is None:
-			return ExtendedNeuralNetwork.create_from_layers(dict['layers'])
+			net = ExtendedNeuralNetwork.create_from_layers(dict['layers'])
+			net.name = dict['name']
+			return net
 		else:
 			neurons = []
 			for i, weights in enumerate(dict['weight_matrix']):

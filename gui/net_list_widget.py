@@ -1,11 +1,9 @@
 from __future__ import annotations
-import os
-import json
 
 from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QMenu, QFileDialog
 from PyQt5.QtCore import pyqtSignal
 
-from app import NetManager, NetJsonEnconder
+from app import NetManager
 
 
 class NetListWidget(QListWidget):
@@ -24,6 +22,9 @@ class NetListWidget(QListWidget):
 		new_net_action = menu.addAction('New net')
 		new_net_action.triggered.connect(self.new_net)
 
+		new_net_action = menu.addAction('Load net')
+		new_net_action.triggered.connect(self.load_net)
+
 		pos = event.pos()
 		item = self.itemAt(pos)
 		if item is not None:
@@ -35,26 +36,32 @@ class NetListWidget(QListWidget):
 
 		menu.exec(event.globalPos())
 
-	def new_net(self):
-		self.net_manager.new_net()
-		new_item = NetListItem(self.net_manager.selected_net.name, self.net_manager.selected_net_id)
+	def _new_item(self, net_id):
+		new_item = NetListItem(self.net_manager.net_by_id[net_id].name, net_id)
 		self.addItem(new_item)
 		self.setCurrentItem(new_item)
+
+	def new_net(self):
+		self._new_item(self.net_manager.new_net())
+
+	def load_net(self):
+		default_filter = "JSON (*.json)"
+		path = QFileDialog.getOpenFileName(self, filter = default_filter)[0]
+		print(path)
+		if path is None:
+			return
+		self._new_item(self.net_manager.load_net(path))
 
 	def remove_net(self, item):
 		self.net_manager.remove_net(item.net_id)
 		self.removeItemWidget(item)
 
 	def save_net(self, item: NetListItem):
-		default_filter = "JSON (.json)"
-		path = QFileDialog.getSaveFileName(self, filter = default_filter, initialFilter = default_filter)[0]
+		default_filter = "JSON (*.json)"
+		path = QFileDialog.getSaveFileName(self, filter = default_filter)[0]
 		if path is None:
 			return
-		split_path = os.path.splitext(path)
-		if split_path[1] != ".json":
-			path = "".join((split_path[0], ".json"))
-		with open(path, mode='w') as f:
-			f.write(json.dumps(self.net_manager.net_by_id[item.net_id], cls = NetJsonEnconder))
+		self.net_manager.save_net(path, item.net_id)
 
 	def change_selected_net_name(self, name):
 		self.currentItem().setText(name)

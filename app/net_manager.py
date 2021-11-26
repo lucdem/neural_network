@@ -1,7 +1,10 @@
 from typing import Iterable, List, Callable, Dict, Tuple
+import os
+import json
+
 
 from neural_network import LinearNeuron, JsonlDataStream, MeanSquareError
-from .extended_neural_network import ExtendedNeuralNetwork
+from .extended_neural_network import ExtendedNeuralNetwork, NetJsonEnconder, NetJsonDecoder
 from .data_classes.training_params import TrainingParams
 
 
@@ -17,15 +20,24 @@ class NetManager:
 	def selected_net(self) -> ExtendedNeuralNetwork:
 		return self.net_by_id[self.selected_net_id]
 
-	def new_net(self):
-		net = ExtendedNeuralNetwork("New net", LinearNeuron, 0, [0])
+	def _new_net(self, net) -> int:
 		self.last_assigned_id += 1
 		last_id = self.last_assigned_id
 		self.net_by_id[last_id] = net
 		self.change_selected_net(last_id)
+		return last_id
 
-	def build_net(self, name, neuron_type, input_count, layer_sizes):
-		self.net_by_id[self.last_assigned_id] = ExtendedNeuralNetwork(name, neuron_type, input_count, layer_sizes)
+	def new_net(self) -> int:
+		net = ExtendedNeuralNetwork(LinearNeuron, 1, [1])
+		return self._new_net(net)
+
+	def load_net(self, path) -> int:
+		with open(path, mode = 'r') as f:
+			net = json.loads(f.read(), cls = NetJsonDecoder)
+		return self._new_net(net)
+
+	def build_net(self, neuron_type, input_count, layer_sizes, name):
+		self.net_by_id[self.last_assigned_id] = ExtendedNeuralNetwork(neuron_type, input_count, layer_sizes, name)
 
 	def train_net(self, net_id, params: TrainingParams,
 		cost_function = MeanSquareError) -> Iterable[Tuple[int, float, float]]:
@@ -53,3 +65,10 @@ class NetManager:
 		self.selected_net.name = name
 		for listener in self.update_name_listeners:
 			listener(self.selected_net.name)
+
+	def save_net(self, path, net_id):
+		split_path = os.path.splitext(path)
+		if split_path[1] != ".json":
+			path = "".join((split_path[0], ".json"))
+		with open(path, mode='w') as f:
+			f.write(json.dumps(self.net_by_id[net_id], cls = NetJsonEnconder))
