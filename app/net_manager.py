@@ -57,10 +57,8 @@ class NetManager:
 			cost, acc = self.net_by_id[net_id].validate(validation_data, cost_function)
 			yield epoch, cost, acc
 
-	# def remove_net(self, id):
-	# 	self.net_by_id.pop(id)
-	# 	for listener in self.net_removal_listeners:
-	# 		listener()
+	def remove_net(self, id):
+		self.net_by_id.pop(id)
 
 	def change_selected_net(self, selected_id):
 		if selected_id == self.selected_net_id:
