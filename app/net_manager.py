@@ -4,8 +4,10 @@ import json
 
 
 from neural_network import LinearNeuron, JsonlDataStream, MeanSquareError
+from neural_network.layer import Layer
 from .extended_neural_network import ExtendedNeuralNetwork, NetJsonEnconder, NetJsonDecoder
 from .data_classes.training_params import TrainingParams
+from app.neuron_type_enum import NeuronTypeEnum
 
 
 class NetManager:
@@ -36,8 +38,14 @@ class NetManager:
 			net = json.loads(f.read(), cls = NetJsonDecoder)
 		return self._new_net(net)
 
-	def build_net(self, neuron_type, input_count, layer_sizes, name):
-		self.net_by_id[self.last_assigned_id] = ExtendedNeuralNetwork(neuron_type, input_count, layer_sizes, name)
+	def build_net(self, net_id, input_count, layer_sizes: List[int], layer_types: List[NeuronTypeEnum]):
+		name = self.net_by_id[net_id].name
+		layers = [Layer(layer_types[0].value, input_count, layer_sizes[0])]
+		for i in range(1, len(layer_sizes)):
+			layers.append(Layer(layer_types[i].value, layer_sizes[i - 1], layer_sizes[i]))
+		net_built = ExtendedNeuralNetwork.create_from_layers(layers)
+		net_built.name = name
+		self.net_by_id[net_id] = net_built
 
 	def train_net(self, net_id, params: TrainingParams,
 		cost_function = MeanSquareError) -> Iterable[Tuple[int, float, float]]:
@@ -71,4 +79,5 @@ class NetManager:
 		if split_path[1] != ".json":
 			path = "".join((split_path[0], ".json"))
 		with open(path, mode='w') as f:
-			f.write(json.dumps(self.net_by_id[net_id], cls = NetJsonEnconder))
+			net_json = json.dumps(self.net_by_id[net_id], cls = NetJsonEnconder, indent='\t')
+			f.write(net_json)

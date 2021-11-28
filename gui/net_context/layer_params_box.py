@@ -73,9 +73,9 @@ class LayerParamsBox(QGroupBox):
 		sizes.append(self.output_layer_box.size_input.value())
 		return sizes
 
-	def get_layer_types(self):
-		types = [inner_box.type_input.value() for inner_box in self.hidden_layers_inner_boxes]
-		types.append(self.output_layer_box.type_input.value())
+	def get_layer_types(self) -> List[NeuronTypeEnum]:
+		types = [inner_box.type_input.get_selected_type() for inner_box in self.hidden_layers_inner_boxes]
+		types.append(self.output_layer_box.type_input.get_selected_type())
 		return types
 
 	def _check_values(self, layers):

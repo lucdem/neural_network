@@ -12,7 +12,7 @@ from .neuron_type_enum import NeuronTypeEnum
 class ExtendedNeuralNetwork(NeuralNetwork):
 	def __init__(self, neuron_type: Type[Neuron], input_count, layer_sizes: List[int], name = "New net"):
 		super().__init__(neuron_type, input_count, layer_sizes)
-		self.name = name
+		self.name: str = name
 
 	def __getstate__(self):
 		return {
@@ -37,16 +37,14 @@ class ExtendedNeuralNetwork(NeuralNetwork):
 
 
 class NetJsonEnconder(JSONEncoder):
-	def default(self, net: ExtendedNeuralNetwork):
-		if isinstance(net, ExtendedNeuralNetwork):
+	def default(self, obj: ExtendedNeuralNetwork):
+		if isinstance(obj, ExtendedNeuralNetwork):
+			return obj.__dict__
+		elif isinstance(obj, Layer):
 			return {
-				'name': net.name,
-				'input_count': net.input_count,
-				'layers': [{
-					'neuron_type': NeuronTypeEnum(type(layer.neurons[0])).name,
-					'weight_matrix': [neuron.weights.tolist() for neuron in layer.neurons],
-					'biases': [neuron.bias for neuron in layer.neurons]
-				} for layer in net.layers]
+				'neuron_type': NeuronTypeEnum(type(obj.neurons[0])).name,
+				'weight_matrix': [neuron.weights.tolist() for neuron in obj.neurons],
+				'biases': [neuron.bias for neuron in obj.neurons]
 			}
 		return super().default()
 
