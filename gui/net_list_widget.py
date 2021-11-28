@@ -59,7 +59,7 @@ class NetListWidget(QListWidget):
 	def save_net(self, item: NetListItem):
 		default_filter = "JSON (*.json)"
 		path = QFileDialog.getSaveFileName(self, filter = default_filter)[0]
-		if path is None:
+		if path is None or len(path) == 0:
 			return
 		self.net_manager.save_net(path, item.net_id)
 

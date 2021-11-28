@@ -64,11 +64,10 @@ class NetContextWidget(QWidget):
 	def build_net(self):
 		self.net_params_box.start_training_button.setEnabled(True)
 
-		name = self.net_params_box.name_input.text()
 		input_count = self.net_params_box.input_count_input.value()
 		layer_sizes = self.layer_params_box.get_layer_sizes()
-		neuron_type = self.layer_params_box.default_layer_type_input.get_selected_type().value
-		self.net_manager.build_net(neuron_type, input_count, layer_sizes, name)
+		layer_types = self.layer_params_box.get_layer_types()
+		self.net_manager.build_net(self.net_id, input_count, layer_sizes, layer_types)
 
 	def train_net(self):
 		self.net_params_box.build_net_button.setEnabled(False)
