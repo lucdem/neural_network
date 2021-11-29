@@ -3,8 +3,7 @@ import os
 import json
 
 
-from neural_network import LinearNeuron, JsonlDataStream, MeanSquareError
-from neural_network.layer import Layer
+from neural_network import Layer, SigmoidLogisticNeuron, JsonlDataStream, MeanSquareError
 from .extended_neural_network import ExtendedNeuralNetwork, NetJsonEnconder, NetJsonDecoder
 from .data_classes.training_params import TrainingParams
 from app.neuron_type_enum import NeuronTypeEnum
@@ -27,7 +26,7 @@ class NetManager:
 		return last_id
 
 	def new_net(self) -> int:
-		net = ExtendedNeuralNetwork(LinearNeuron, 1, [1])
+		net = ExtendedNeuralNetwork(SigmoidLogisticNeuron, 1, [1])
 		return self._new_net(net)
 
 	def change_selected_net(self, selected_id):
