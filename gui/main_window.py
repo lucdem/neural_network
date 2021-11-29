@@ -38,8 +38,9 @@ class MainWindow(QWidget):
 
 		# event/signal bindings
 
-		self.net_manager.update_name_listeners.append(self.net_list_widget.change_selected_net_name)
+		self.net_stacked_layout.net_name_changed_signal.connect(self.net_list_widget.change_selected_net_name)
 		self.net_list_widget.removed_net_signal.connect(self.net_stacked_layout.remove_context)
+		self.net_list_widget.selected_net_changed_signal.connect(self.net_stacked_layout.change_context)
 
 		self.net_stacked_layout.training_started.connect(self.graph_wrapper.create_plot_data)
 		self.net_stacked_layout.training_progress.connect(self.graph_wrapper.update_graphs)

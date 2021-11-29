@@ -15,8 +15,6 @@ class NetManager:
 		self.net_by_id: Dict[int, ExtendedNeuralNetwork] = {}
 		self.selected_net_id = -1
 		self.last_assigned_id = -1
-		self.selection_change_listeners: List[Callable] = []
-		self.update_name_listeners: List[Callable] = []
 
 	@property
 	def selected_net(self) -> ExtendedNeuralNetwork:
@@ -26,12 +24,14 @@ class NetManager:
 		self.last_assigned_id += 1
 		last_id = self.last_assigned_id
 		self.net_by_id[last_id] = net
-		self.change_selected_net(last_id)
 		return last_id
 
 	def new_net(self) -> int:
 		net = ExtendedNeuralNetwork(LinearNeuron, 1, [1])
 		return self._new_net(net)
+
+	def change_selected_net(self, selected_id):
+		self.selected_net_id = selected_id
 
 	def load_net(self, path) -> int:
 		with open(path, mode = 'r') as f:
@@ -59,18 +59,6 @@ class NetManager:
 
 	def remove_net(self, id):
 		self.net_by_id.pop(id)
-
-	def change_selected_net(self, selected_id):
-		if selected_id == self.selected_net_id:
-			return
-		self.selected_net_id = selected_id
-		for listener in self.selection_change_listeners:
-			listener()
-
-	def update_net_name(self, name):
-		self.selected_net.name = name
-		for listener in self.update_name_listeners:
-			listener(self.selected_net.name)
 
 	def save_net(self, path, net_id):
 		split_path = os.path.splitext(path)

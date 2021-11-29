@@ -65,11 +65,12 @@ class NetListWidget(QListWidget):
 			return
 		self.net_manager.save_net(path, item.net_id)
 
-	def change_selected_net_name(self, name: str):
+	def change_selected_net_name(self, net_id: int, name: str):
 		self.currentItem().setText(name)
 
 	def change_selected_net(self):
 		self.net_manager.change_selected_net(self.currentItem().net_id)
+		self.selected_net_changed_signal.emit(self.currentItem().net_id)
 
 
 class NetListItem(QListWidgetItem):
