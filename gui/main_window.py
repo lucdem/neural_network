@@ -36,6 +36,8 @@ class MainWindow(QWidget):
 		self.text_output = TextOutputWidget()
 		self.center_layout.addWidget(self.text_output, stretch=0)
 
+		self.showMaximized()
+
 		# event/signal bindings
 
 		self.net_stacked_layout.net_name_changed_signal.connect(self.net_list_widget.change_selected_net_name)
@@ -44,12 +46,6 @@ class MainWindow(QWidget):
 
 		self.net_stacked_layout.training_started.connect(self.graph_wrapper.create_plot_data)
 		self.net_stacked_layout.training_progress.connect(self.graph_wrapper.update_graphs)
-		self.net_stacked_layout.training_progress.connect(self.print_training_progress_msg)
-
-		self.coisacoisacoisa = 0
-
-	def show(self):
-		self.showMaximized()
 
 	def contextMenuEvent(self, event):
 		menu = QMenu(self)
@@ -58,11 +54,3 @@ class MainWindow(QWidget):
 		test.triggered.connect(self.test)
 
 		menu.exec(event.globalPos())
-
-	def test(self):
-		self.coisacoisacoisa += 1
-		self.net_manager.emit_training_progression(self.coisacoisacoisa, 100, uniform(0, 10000), uniform(0, 100))
-
-	def print_training_progress_msg(self, net_id, epoch, cost, acc):
-		self.text_output.message('training...', net_name = self.net_manager.net_by_id[net_id].name,
-			epoch = epoch, cost = cost, acc = acc)
