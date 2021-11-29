@@ -51,7 +51,6 @@ class NetContextWidget(QWidget):
 		self.net_params_box.hidden_layer_count_input.valueChanged.connect(self.layer_params_box.change_hidden_layer_count)
 
 		self.net_params_box.build_net_button.clicked.connect(self.build_net)
-		self.net_params_box.name_input.edit_finished_value_signal.connect(self.net_manager.update_net_name)
 		self.net_params_box.start_training_button.clicked.connect(self.train_net)
 		self.net_params_box.stop_training_button.clicked.connect(self.stop_training)
 
