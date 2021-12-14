@@ -61,8 +61,6 @@ class NetContextWidget(QWidget):
 		self._check_values()
 
 	def build_net(self):
-		self.net_params_box.start_training_button.setEnabled(True)
-
 		input_count = self.net_params_box.input_count_input.value()
 		layer_sizes = self.layer_params_box.get_layer_sizes()
 		layer_types = self.layer_params_box.get_layer_types()
