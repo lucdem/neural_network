@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox,
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QGridLayout, QGroupBox,
 	QHBoxLayout, QLabel, QSizePolicy, QSpinBox)
 from PyQt5.QtCore import Qt
 
@@ -59,4 +59,27 @@ class TrainingParamsBox(QGroupBox):
 		self.max_epochs_input.setRange(1, 100000)
 		grid_layout.addWidget(self.max_epochs_input, 0, 5)
 
+		grid_layout.addWidget(QLabel('Use Momentum'), 1, 0, Qt.AlignmentFlag.AlignCenter)
+		self.use_momentum_input = QCheckBox()
+		grid_layout.addWidget(self.use_momentum_input, 1, 1)
+
+		grid_layout.addWidget(QLabel('Friction'), 1, 2, Qt.AlignmentFlag.AlignCenter)
+		self.friction_input = QDoubleSpinBox()
+		self.friction_input.setDecimals(2)
+		self.friction_input.setRange(0, 1)
+		self.friction_input.setSingleStep(0.01)
+		self.friction_input.setValue(0.2)
+		self.friction_input.setDisabled(True)
+		grid_layout.addWidget(self.friction_input, 1, 3)
+
 		self.setLayout(grid_layout)
+
+		# event/signal bindings
+
+		self.use_momentum_input.stateChanged.connect(self.__friction_enabled)
+
+	def __friction_enabled(self, momentum_checked: int):
+		if momentum_checked == 0:
+			self.friction_input.setDisabled(True)
+		else:
+			self.friction_input.setDisabled(False)

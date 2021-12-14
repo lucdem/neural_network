@@ -25,6 +25,9 @@ class Neuron(ABC):
 		self.weights: numpy.ndarray = weights
 		self.bias: float = uniform(self.__class__.random_bias_lower_limit, self.__class__.random_bias_upper_limit)
 
+		self.weight_momentum = numpy.zeros(input_count)
+		self.bias_momentum = 0.0
+
 	@property
 	def input_count(self):
 		return self.weights.size
@@ -50,9 +53,16 @@ class Neuron(ABC):
 		z = self.z(input)
 		return self.__class__.activation(z), z
 
-	def update(self, weight_changes: numpy.ndarray, delta: float, learning_rate: float):
-		self.weights = numpy.subtract(self.weights, weight_changes * learning_rate)
-		self.bias -= delta * learning_rate
+	def update(self, weight_changes: numpy.ndarray, delta: float, learning_rate: float,
+		friction: float):
+		if friction is None:
+			self.weights = numpy.subtract(self.weights, weight_changes * learning_rate)
+			self.bias -= delta * learning_rate
+		else:
+			self.weight_momentum = numpy.add(self.weight_momentum * (1 - friction), weight_changes * learning_rate)
+			self.weights = numpy.subtract(self.weights, self.weight_momentum)
+			self.bias_momentum = self.bias_momentum * (1 - friction) + delta * learning_rate
+			self.bias -= self.bias_momentum
 
 
 class SigmoidLogisticNeuron(Neuron):

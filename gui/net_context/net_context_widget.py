@@ -75,11 +75,14 @@ class NetContextWidget(QWidget):
 		validation_data_path = self.validation_data_box.file_path_input.text()
 		learning_rate = (self.training_params_box.learning_rate_input.value()
 			* 10**self.training_params_box.learning_rate_magnitude_input.currentData())
+		friction = (self.training_params_box.friction_input.value()
+			if self.training_params_box.use_momentum_input.isChecked()
+			else None)
 		batch_size = self.training_params_box.batch_size_input.value()
 		max_epochs = self.training_params_box.max_epochs_input.value()
 
 		self.training_worker.setup(TrainingParams(training_data_path, validation_data_path,
-			learning_rate, batch_size, max_epochs))
+			learning_rate, friction, batch_size, max_epochs))
 		self.training_thread.start()
 
 	def stop_training(self):

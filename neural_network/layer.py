@@ -40,9 +40,9 @@ class Layer:
 			derivative[i] = neuron.__class__.activation_derivative(zs[i])
 		return derivative
 
-	def update(self, weight_changes: numpy.ndarray, delta: numpy.ndarray, learning_rate: float):
+	def update(self, weight_changes: numpy.ndarray, delta: numpy.ndarray, learning_rate: float, friction: float):
 		for i, neuron in enumerate(self.neurons):
-			neuron.update(weight_changes[i, :], delta[i], learning_rate)
+			neuron.update(weight_changes[i, :], delta[i], learning_rate, friction)
 
 	def calculate_output_layer_delta(self, cost_function: CostFunction,
 		output: numpy.ndarray, expected_output: numpy.ndarray,

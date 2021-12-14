@@ -56,13 +56,14 @@ class NeuralNetwork:
 			layer_input = layer_output
 		return all_layers_outputs, all_layers_zs
 
-	def train(self, epochs: int, learning_rate: float, batch_size: int,
-		training_data: Data, cost_function: Type[CostFunction] = MeanSquareError):
+	def train(self, epochs: int, learning_rate: float, friction: float,
+		batch_size: int, training_data: Data,
+		cost_function: Type[CostFunction] = MeanSquareError):
 
 		training_batches = training_data.split_batches(batch_size)
 		for i in range(epochs):
 			for batch in training_batches:
-				w, b = self.__train_batch(batch, learning_rate, cost_function)
+				w, b = self.__train_batch(batch, learning_rate, friction, cost_function)
 
 	def validate(self, validation_data: Data, cost_function: CostFunction) -> Tuple[float, float]:
 		data_points = validation_data.get_data_points()
@@ -75,7 +76,7 @@ class NeuralNetwork:
 				correct_classification += 1
 		return numpy.average(cost_func_errors), (correct_classification / len(data_points)) * 100
 
-	def __train_batch(self, batch: DataSample, learning_rate: float, cost_function: Type[CostFunction]):
+	def __train_batch(self, batch: DataSample, learning_rate: float, friction: float, cost_function: Type[CostFunction]):
 
 		all_layers_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
 		all_layers_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
@@ -91,7 +92,7 @@ class NeuralNetwork:
 				next_layer_delta = delta
 
 		for layer_index, layer in enumerate(self.layers):
-			layer.update(all_layers_weight_changes[layer_index], all_layers_deltas[layer_index], learning_rate)
+			layer.update(all_layers_weight_changes[layer_index], all_layers_deltas[layer_index], learning_rate, friction)
 
 		return all_layers_weight_changes, all_layers_deltas
 
