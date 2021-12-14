@@ -41,7 +41,7 @@ class NeuralNetwork:
 	@property
 	def input_count(self):
 		if self.layer_count > 0:
-			return self.layers[0].size
+			return self.layers[0].input_count
 		else:
 			return 0
 
