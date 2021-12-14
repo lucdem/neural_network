@@ -58,14 +58,14 @@ class NeuralNetwork:
 
 	def train(self, epochs: int, learning_rate: float, friction: float,
 		batch_size: int, training_data: Data,
-		cost_function: Type[CostFunction] = MeanSquareError):
+		cost_function: Type[CostFunction]):
 
 		training_batches = training_data.split_batches(batch_size)
 		for i in range(epochs):
 			for batch in training_batches:
 				w, b = self.__train_batch(batch, learning_rate, friction, cost_function)
 
-	def validate(self, validation_data: Data, cost_function: CostFunction) -> Tuple[float, float]:
+	def validate(self, validation_data: Data, cost_function: Type[CostFunction]) -> Tuple[float, float]:
 		data_points = validation_data.get_data_points()
 		cost_func_errors = numpy.zeros(len(data_points))
 		correct_classification = 0

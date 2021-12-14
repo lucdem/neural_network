@@ -48,7 +48,6 @@ class NetListWidget(QListWidget):
 	def load_net(self):
 		default_filter = "JSON (*.json)"
 		path = QFileDialog.getOpenFileName(self, filter = default_filter)[0]
-		print(path)
 		if path is None:
 			return
 		self._new_item(self.net_manager.load_net(path))
