@@ -1,8 +1,7 @@
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy
 
-from app import NetManager
-from app.data_classes.training_params import TrainingParams
+from app import NetManager, TrainingParams
 from .net_params_box import NetParamsBox
 from .layer_params_box import LayerParamsBox
 from .training_params_box import TrainingParamsBox
@@ -73,16 +72,9 @@ class NetContextWidget(QWidget):
 
 		training_data_path = self.training_data_box.file_path_input.text()
 		validation_data_path = self.validation_data_box.file_path_input.text()
-		learning_rate = (self.training_params_box.learning_rate_input.value()
-			* 10**self.training_params_box.learning_rate_magnitude_input.currentData())
-		friction = (self.training_params_box.friction_input.value()
-			if self.training_params_box.use_momentum_input.isChecked()
-			else None)
-		batch_size = self.training_params_box.batch_size_input.value()
-		max_epochs = self.training_params_box.max_epochs_input.value()
+		training_params = self.training_params_box.get_params()
 
-		self.training_worker.setup(TrainingParams(training_data_path, validation_data_path,
-			learning_rate, friction, batch_size, max_epochs))
+		self.training_worker.setup(training_data_path, validation_data_path, training_params)
 		self.training_thread.start()
 
 	def stop_training(self):
@@ -110,14 +102,18 @@ class NetTrainingWorker(QObject):
 		self.net_id = net_id
 		self.stop = False
 
-	def setup(self, training_params):
-		self.stop = False
-		self.training_params: TrainingParams = training_params
+	def setup(self, training_data_path, validation_data_path, training_params):
+		self.training_data_path = training_data_path
+		self.validation_data_path = validation_data_path
+		self.training_params = training_params
 
 	def start(self):
 		self.started.emit(self.net_id, self.training_params.max_epochs)
-		for epoch, cost, acc in self.net_manager.train_net(self.net_id, self.training_params):
+		for epoch, cost, acc in self.net_manager.train_net(self.net_id, self.training_data_path,
+			self.validation_data_path, self.training_params):
+
 			if self.stop:
+				self.stop = False
 				break
 			self.progress.emit(self.net_id, epoch, cost, acc)
 		self.finished.emit(self.net_id)

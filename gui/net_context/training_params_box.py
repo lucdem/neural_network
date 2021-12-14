@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QGridLayout, 
 	QHBoxLayout, QLabel, QSizePolicy, QSpinBox)
 from PyQt5.QtCore import Qt
 
+from app import TrainingParams
+
 
 class TrainingParamsBox(QGroupBox):
 	def __init__(self):
@@ -30,19 +32,6 @@ class TrainingParamsBox(QGroupBox):
 		self.learning_rate_magnitude_input.addItem("10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT SEVEN}", -7)
 		self.learning_rate_magnitude_input.addItem("10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT EIGHT}", -8)
 		self.learning_rate_magnitude_input.addItem("10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT NINE}", -9)
-		# self.learning_rate_magnitude_input.addItems([
-		# 	"10\N{SUPERSCRIPT ONE}",
-		# 	"10\N{SUPERSCRIPT ZERO}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT TWO}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT THREE}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT FOUR}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT FIVE}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT SIX}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT SEVEN}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT EIGHT}",
-		# 	"10\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT NINE}",
-		# ])
 		learning_rate_hbox.addWidget(self.learning_rate_magnitude_input)
 		self.learning_rate_magnitude_input.setCurrentIndex(4)
 		grid_layout.addLayout(learning_rate_hbox, 0, 1)
@@ -83,3 +72,13 @@ class TrainingParamsBox(QGroupBox):
 			self.friction_input.setDisabled(True)
 		else:
 			self.friction_input.setDisabled(False)
+
+	def get_params(self) -> TrainingParams:
+		learning_rate = (self.learning_rate_input.value()
+			* 10**self.learning_rate_magnitude_input.currentData())
+		friction = (self.friction_input.value()
+			if self.use_momentum_input.isChecked()
+			else None)
+		batch_size = self.batch_size_input.value()
+		max_epochs = self.max_epochs_input.value()
+		return TrainingParams(learning_rate, friction, batch_size, max_epochs)
