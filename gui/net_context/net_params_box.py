@@ -30,7 +30,6 @@ class NetParamsBox(QGroupBox):
 		buttons_container_widget.layout().addWidget(self.build_net_button)
 
 		self.start_training_button = QPushButton("Start Training")
-		self.start_training_button.setEnabled(False)
 		buttons_container_widget.layout().addWidget(self.start_training_button)
 
 		self.stop_training_button = QPushButton("Stop Training")
