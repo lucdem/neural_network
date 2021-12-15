@@ -61,6 +61,14 @@ class TrainingParamsBox(QGroupBox):
 		self.friction_input.setDisabled(True)
 		grid_layout.addWidget(self.friction_input, 1, 3)
 
+		grid_layout.addWidget(QLabel('Dropout Rate'), 1, 4, Qt.AlignmentFlag.AlignCenter)
+		self.dropout_input = QDoubleSpinBox()
+		self.dropout_input.setDecimals(2)
+		self.dropout_input.setRange(0, 1)
+		self.dropout_input.setSingleStep(0.01)
+		self.dropout_input.setValue(0.5)
+		grid_layout.addWidget(self.dropout_input, 1, 5)
+
 		self.setLayout(grid_layout)
 
 		# event/signal bindings
@@ -81,4 +89,5 @@ class TrainingParamsBox(QGroupBox):
 			else None)
 		batch_size = self.batch_size_input.value()
 		max_epochs = self.max_epochs_input.value()
-		return TrainingParams(learning_rate, friction, batch_size, max_epochs)
+		dropout = self.dropout_input.value()
+		return TrainingParams(learning_rate, friction, batch_size, max_epochs, dropout)
