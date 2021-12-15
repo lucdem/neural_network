@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import List, Type, Tuple, TypeVar
+from typing import List, Type, Tuple, TypeVar, Optional
+from random import uniform
 
 import numpy
 
@@ -7,7 +8,7 @@ from neural_network.data.data_point import DataPoint
 
 from .neuron import Neuron, SigmoidLogisticNeuron
 from .layer import Layer
-from .cost_function import CostFunction, MeanSquareError
+from .cost_function import CostFunction
 from .data.data import Data, DataSample
 from .reverse_list_enumerate import reverse_list_enumerate
 
@@ -45,25 +46,29 @@ class NeuralNetwork:
 		else:
 			return 0
 
-	def output(self, input: numpy.ndarray) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
+	def output(self, input: numpy.ndarray,
+		neuron_drops: Optional[List[numpy.ndarray]] = None) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
+
 		all_layers_outputs: List[numpy.ndarray] = []
 		all_layers_zs: List[numpy.ndarray] = []
 		layer_input = input
-		for layer in self.layers:
+		for i, layer in enumerate(self.layers):
 			layer_output, z_vector = layer.output(layer_input)
+			if neuron_drops is not None:
+				layer_output = numpy.multiply(layer_output, neuron_drops[i])
 			all_layers_outputs.append(layer_output)
 			all_layers_zs.append(z_vector)
 			layer_input = layer_output
 		return all_layers_outputs, all_layers_zs
 
 	def train(self, epochs: int, learning_rate: float, friction: float,
-		batch_size: int, training_data: Data,
+		batch_size: int, dropout: float, training_data: Data,
 		cost_function: Type[CostFunction]):
 
 		training_batches = training_data.split_batches(batch_size)
 		for i in range(epochs):
 			for batch in training_batches:
-				w, b = self.__train_batch(batch, learning_rate, friction, cost_function)
+				w, b = self.__train_batch(batch, learning_rate, friction, dropout, cost_function)
 
 	def validate(self, validation_data: Data, cost_function: Type[CostFunction]) -> Tuple[float, float]:
 		data_points = validation_data.get_data_points()
@@ -76,17 +81,24 @@ class NeuralNetwork:
 				correct_classification += 1
 		return numpy.average(cost_func_errors), (correct_classification / len(data_points)) * 100
 
-	def __train_batch(self, batch: DataSample, learning_rate: float, friction: float, cost_function: Type[CostFunction]):
+	def __train_batch(self, batch: DataSample, learning_rate: float, friction: float,
+		dropout: float, cost_function: Type[CostFunction]):
 
 		all_layers_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
 		all_layers_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
+		neuron_drops = None
+		if dropout > 0:
+			neuron_drops = [
+				numpy.array([1 / dropout if uniform(0, 1) > dropout else 0 for _ in range(layer.size)])
+				for layer in self.layers[:self.layer_count - 1]]
+			neuron_drops.append(numpy.array([1] * self.output_count))
 
 		for data_point in batch.data_points:
-			all_layers_outputs, all_layers_zs = self.output(data_point.input)
+			all_layers_outputs, all_layers_zs = self.output(data_point.input, neuron_drops)
 			next_layer_delta = numpy.array([]) # initializing variable, self.__layer_changes ignores this value for output_layer
 			for layer_index, layer in reverse_list_enumerate(self.layers):
 				weight_changes, delta = self.__calculate_layer_weight_changes(layer_index, data_point, all_layers_outputs,
-					all_layers_zs, next_layer_delta, cost_function, batch.size)
+					all_layers_zs, next_layer_delta, cost_function, batch.size, neuron_drops)
 				all_layers_weight_changes[layer_index] = all_layers_weight_changes[layer_index] + weight_changes
 				all_layers_deltas[layer_index] = all_layers_deltas[layer_index] + delta
 				next_layer_delta = delta
@@ -96,9 +108,10 @@ class NeuralNetwork:
 
 		return all_layers_weight_changes, all_layers_deltas
 
-	def __calculate_layer_weight_changes(self, layer_index, data_point: DataPoint, all_layer_outputs: List[numpy.ndarray],
-		all_layer_zs: List[numpy.ndarray], next_layer_delta: numpy.ndarray,
-		cost_function, batch_size) -> Tuple[numpy.ndarray, numpy.ndarray]:
+	def __calculate_layer_weight_changes(self, layer_index: int, data_point: DataPoint,
+		all_layer_outputs: List[numpy.ndarray], all_layer_zs: List[numpy.ndarray],
+		next_layer_delta: numpy.ndarray, cost_function: Type[CostFunction], batch_size: int,
+		neuron_drops: Optional[List[numpy.ndarray]]) -> Tuple[numpy.ndarray, numpy.ndarray]:
 
 		if layer_index == -1: # output layer
 			delta = self.layers[layer_index].calculate_output_layer_delta(cost_function, all_layer_outputs[layer_index],
@@ -106,6 +119,8 @@ class NeuralNetwork:
 		else:
 			delta = self.layers[layer_index].calculate_layer_delta(all_layer_zs[layer_index],
 				self.layers[layer_index + 1], next_layer_delta)
+			if neuron_drops is not None:
+				delta = numpy.multiply(delta, neuron_drops[layer_index])
 
 		if layer_index == -self.layer_count: # first layer
 			previous_layer_output = numpy.array([data_point.input])

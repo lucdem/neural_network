@@ -53,7 +53,7 @@ class NetManager:
 		validation_data = JsonlDataStream(validation_data_path)
 		for epoch in range(params.max_epochs):
 			self.net_by_id[net_id].train(1, params.learning_rate, params.friction,
-				params.batch_size, training_data, params.cost_function)
+				params.batch_size, params.dropout, training_data, params.cost_function)
 			cost, acc = self.net_by_id[net_id].validate(validation_data, params.cost_function)
 			yield epoch, cost, acc
 

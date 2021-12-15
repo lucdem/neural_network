@@ -44,7 +44,7 @@ class Layer:
 		for i, neuron in enumerate(self.neurons):
 			neuron.update(weight_changes[i, :], delta[i], learning_rate, friction)
 
-	def calculate_output_layer_delta(self, cost_function: CostFunction,
+	def calculate_output_layer_delta(self, cost_function: Type[CostFunction],
 		output: numpy.ndarray, expected_output: numpy.ndarray,
 		layer_z: numpy.ndarray, batch_size: int) -> numpy.ndarray:
 
