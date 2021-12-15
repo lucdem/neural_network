@@ -41,3 +41,4 @@ class NetStackedLayout(QStackedLayout):
 
 	def remove_context(self, net_id):
 		self.removeWidget(self.context_widget_by_id[net_id])
+		self.context_widget_by_id.pop(net_id)
