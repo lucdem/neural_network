@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Type, Tuple, TypeVar, Optional
 from random import uniform
+import itertools
 
 import numpy
 
@@ -11,6 +12,7 @@ from .layer import Layer
 from .cost_function import CostFunction
 from .data.data import Data, DataSample
 from .reverse_list_enumerate import reverse_list_enumerate
+from .lregularization import LRegularization
 
 
 __T = TypeVar('__T', bound= 'NeuralNetwork')
@@ -63,26 +65,33 @@ class NeuralNetwork:
 
 	def train(self, epochs: int, learning_rate: float, friction: float,
 		batch_size: int, dropout: float, training_data: Data,
-		cost_function: Type[CostFunction]):
+		cost_function: Type[CostFunction], lregularization: LRegularization):
 
 		training_batches = training_data.split_batches(batch_size)
 		for i in range(epochs):
 			for batch in training_batches:
-				w, b = self.__train_batch(batch, learning_rate, friction, dropout, cost_function)
+				w, b = self.__train_batch(batch, learning_rate, friction, dropout, cost_function, lregularization)
 
-	def validate(self, validation_data: Data, cost_function: Type[CostFunction]) -> Tuple[float, float]:
+	def validate(self, validation_data: Data, cost_function: Type[CostFunction],
+		lregularization: LRegularization) -> Tuple[float, float]:
+
 		data_points = validation_data.get_data_points()
 		cost_func_errors = numpy.zeros(len(data_points))
 		correct_classification = 0
+		regularization_cost = 0.0
+		if lregularization is not None:
+			regularization_cost = lregularization.cost_term(
+				itertools.chain.from_iterable(((n.weights for n in l.neurons) for l in self.layers)))
 		for i, data_point in enumerate(data_points):
 			output = self.output(data_point.input)[0][-1]
-			cost_func_errors[i] = numpy.average(cost_function.func(output, data_point.expected_output, 1))
+			cost_func_errors[i] = (numpy.average(cost_function.func(output, data_point.expected_output, 1))
+				+ regularization_cost)
 			if numpy.argmax(output) == numpy.argmax(data_point.expected_output):
 				correct_classification += 1
 		return numpy.average(cost_func_errors), (correct_classification / len(data_points)) * 100
 
 	def __train_batch(self, batch: DataSample, learning_rate: float, friction: float,
-		dropout: float, cost_function: Type[CostFunction]):
+		dropout: float, cost_function: Type[CostFunction], lregularization: LRegularization):
 
 		all_layers_weight_changes: List[numpy.ndarray] = [numpy.zeros((l.size, l.input_count)) for l in self.layers]
 		all_layers_deltas: List[numpy.ndarray] = [numpy.zeros(l.size) for l in self.layers]
@@ -104,7 +113,8 @@ class NeuralNetwork:
 				next_layer_delta = delta
 
 		for layer_index, layer in enumerate(self.layers):
-			layer.update(all_layers_weight_changes[layer_index], all_layers_deltas[layer_index], learning_rate, friction)
+			layer.update(all_layers_weight_changes[layer_index], all_layers_deltas[layer_index],
+				learning_rate, friction, lregularization)
 
 		return all_layers_weight_changes, all_layers_deltas
 

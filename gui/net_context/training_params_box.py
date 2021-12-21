@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QGridLayout, 
 	QHBoxLayout, QLabel, QSizePolicy, QSpinBox)
 from PyQt5.QtCore import Qt
 
-from app import TrainingParams
+from app import TrainingParams, LRegularizationEnum
 
 
 class TrainingParamsBox(QGroupBox):
@@ -69,6 +69,29 @@ class TrainingParamsBox(QGroupBox):
 		self.dropout_input.setValue(0.5)
 		grid_layout.addWidget(self.dropout_input, 1, 5)
 
+		grid_layout.addWidget(QLabel('Dropout Rate'), 1, 4, Qt.AlignmentFlag.AlignCenter)
+		self.dropout_input = QDoubleSpinBox()
+		self.dropout_input.setDecimals(2)
+		self.dropout_input.setRange(0, 1)
+		self.dropout_input.setSingleStep(0.01)
+		self.dropout_input.setValue(0.5)
+		grid_layout.addWidget(self.dropout_input, 1, 5)
+
+		grid_layout.addWidget(QLabel('Regularization'), 2, 0, Qt.AlignmentFlag.AlignCenter)
+		self.lregularization_type_input = QComboBox()
+		self.lregularization_type_input.addItem('None', None)
+		self.lregularization_type_input.addItem('L1', LRegularizationEnum.L1)
+		self.lregularization_type_input.addItem('L2', LRegularizationEnum.L2)
+		grid_layout.addWidget(self.lregularization_type_input, 2, 1)
+
+		grid_layout.addWidget(QLabel('lambda'), 2, 2, Qt.AlignmentFlag.AlignCenter)
+		self.lreg_lambda = QDoubleSpinBox()
+		self.lreg_lambda.setDecimals(2)
+		self.lreg_lambda.setRange(0, 1)
+		self.lreg_lambda.setSingleStep(0.01)
+		self.lreg_lambda.setValue(0.5)
+		grid_layout.addWidget(self.lreg_lambda, 2, 3)
+
 		self.setLayout(grid_layout)
 
 		# event/signal bindings
@@ -90,4 +113,8 @@ class TrainingParamsBox(QGroupBox):
 		batch_size = self.batch_size_input.value()
 		max_epochs = self.max_epochs_input.value()
 		dropout = self.dropout_input.value()
-		return TrainingParams(learning_rate, friction, batch_size, max_epochs, dropout)
+		lregularization = self.lregularization_type_input.currentData()
+		if lregularization is not None:
+			lregularization = lregularization.value
+		lreg_lambda = self.lreg_lambda.value()
+		return TrainingParams(learning_rate, friction, batch_size, max_epochs, dropout, lregularization, lreg_lambda)
