@@ -6,6 +6,8 @@ from typing import List, Tuple, TypeVar
 
 import numpy
 
+from .lregularization import LRegularization
+
 
 __T = TypeVar('__T', bound= 'Neuron')
 
@@ -54,7 +56,11 @@ class Neuron(ABC):
 		return self.__class__.activation(z), z
 
 	def update(self, weight_changes: numpy.ndarray, delta: float, learning_rate: float,
-		friction: float):
+		friction: float, lregularization: LRegularization):
+
+		if lregularization is not None:
+			weight_changes = weight_changes + lregularization.weight_update_term(self.weights)
+
 		if friction is None:
 			self.weights = numpy.subtract(self.weights, weight_changes * learning_rate)
 			self.bias -= delta * learning_rate
