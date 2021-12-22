@@ -106,6 +106,7 @@ class NetTrainingWorker(QObject):
 		self.training_data_path = training_data_path
 		self.validation_data_path = validation_data_path
 		self.training_params = training_params
+		self.stop = False
 
 	def start(self):
 		self.started.emit(self.net_id, self.training_params.max_epochs)
