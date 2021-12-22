@@ -9,6 +9,8 @@ from .data_set_box import DataSetBox
 
 
 class NetContextWidget(QWidget):
+	net_built_signal = pyqtSignal(int)
+
 	def __init__(self, net_manager: NetManager) -> None:
 		super().__init__()
 
@@ -64,6 +66,7 @@ class NetContextWidget(QWidget):
 		layer_sizes = self.layer_params_box.get_layer_sizes()
 		layer_types = self.layer_params_box.get_layer_types()
 		self.net_manager.build_net(self.net_id, input_count, layer_sizes, layer_types)
+		self.net_built_signal.emit(self.net_id)
 
 	def train_net(self):
 		self.net_params_box.build_net_button.setEnabled(False)
@@ -106,6 +109,7 @@ class NetTrainingWorker(QObject):
 		self.training_data_path = training_data_path
 		self.validation_data_path = validation_data_path
 		self.training_params = training_params
+		print(self.stop)
 
 	def start(self):
 		self.started.emit(self.net_id, self.training_params.max_epochs)

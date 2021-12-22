@@ -33,7 +33,7 @@ class MainWindow(QWidget):
 		self.net_stacked_layout = NetStackedLayout(self.net_manager)
 		self.center_layout.addLayout(self.net_stacked_layout)
 
-		self.text_output = TextOutputWidget()
+		self.text_output = TextOutputWidget(net_manager)
 		self.center_layout.addWidget(self.text_output, stretch=0)
 
 		self.showMaximized()
@@ -41,11 +41,16 @@ class MainWindow(QWidget):
 		# event/signal bindings
 
 		self.net_stacked_layout.net_name_changed_signal.connect(self.net_list_widget.change_selected_net_name)
+		self.net_stacked_layout.net_name_changed_signal.connect(self.text_output.net_name_change_msg)
+		self.net_stacked_layout.net_built_signal.connect(self.text_output.net_built_msg)
+
 		self.net_list_widget.removed_net_signal.connect(self.net_stacked_layout.remove_context)
 		self.net_list_widget.selected_net_changed_signal.connect(self.net_stacked_layout.change_context)
 
-		self.net_stacked_layout.training_started.connect(self.graph_wrapper.create_plot_data)
-		self.net_stacked_layout.training_progress.connect(self.graph_wrapper.update_graphs)
+		self.net_stacked_layout.training_started_signal.connect(self.graph_wrapper.create_plot_data)
+		self.net_stacked_layout.training_started_signal.connect(self.text_output.training_started_msg)
+		self.net_stacked_layout.training_progress_signal.connect(self.graph_wrapper.update_graphs)
+		self.net_stacked_layout.training_progress_signal.connect(self.text_output.training_progress_msg)
 
 	def contextMenuEvent(self, event):
 		menu = QMenu(self)
