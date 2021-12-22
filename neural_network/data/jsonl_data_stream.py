@@ -10,7 +10,8 @@ class JsonlDataStream(Data):
 	def __init__(self, jsonl_file_path):
 		self.file_path = jsonl_file_path
 
-	def get_data_points(self) -> List[DataPoint]:
+	@property
+	def data_points(self) -> List[DataPoint]:
 		with jsonlines.Reader(open(self.file_path)) as reader:
 			data_points = []
 			while True:

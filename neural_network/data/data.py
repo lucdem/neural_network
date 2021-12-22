@@ -1,13 +1,14 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from typing import Iterable, List
 
 from .data_point import DataPoint
 
 
 class Data(ABC):
-	@abstractproperty
-	def get_data_points(self) -> List[DataPoint]:
+	@property
+	@abstractmethod
+	def data_points(self) -> List[DataPoint]:
 		pass
 
 	@abstractmethod
@@ -15,10 +16,10 @@ class Data(ABC):
 		pass
 
 
-class DataSample:
+class DataSample(Data):
 	def __init__(self, data_points: List[DataPoint]):
 		DataSample.__validate_data_points(data_points)
-		self.data_points = data_points
+		self._data_points = data_points
 
 	@property
 	def size(self):
@@ -33,8 +34,8 @@ class DataSample:
 		return self.data_points[0].expected_output.size
 
 	@property
-	def get_data_points(self) -> List[DataPoint]:
-		return self.data_points
+	def data_points(self) -> List[DataPoint]:
+		return self._data_points
 
 	@classmethod
 	def __validate_data_points(cls, data_points: List[DataPoint]):
