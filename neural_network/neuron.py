@@ -1,8 +1,7 @@
 from __future__ import annotations
-from math import exp, tanh
 from random import uniform
 from abc import ABC, abstractmethod
-from typing import List, Tuple, TypeVar
+from typing import Tuple, TypeVar, Optional
 
 import numpy
 
@@ -21,10 +20,9 @@ class Neuron(ABC):
 	random_bias_upper_limit = -0.5
 
 	def __init__(self, input_count: int):
-		weights = numpy.zeros(input_count)
+		self.weights = numpy.zeros(input_count)
 		for i in range(input_count):
-			weights[i] = uniform(self.__class__.random_weight_lower_limit, self.__class__.random_weight_upper_limit)
-		self.weights: numpy.ndarray = weights
+			self.weights[i] = uniform(self.__class__.random_weight_lower_limit, self.__class__.random_weight_upper_limit)
 		self.bias: float = uniform(self.__class__.random_bias_lower_limit, self.__class__.random_bias_upper_limit)
 
 		self.weight_momentum = numpy.zeros(input_count)
@@ -36,16 +34,14 @@ class Neuron(ABC):
 
 	@classmethod
 	@abstractmethod
-	def activation(cls, z) -> float:
+	def activation(cls, z: numpy.ndarray) -> float:
 		"""z is the sum of weighted inputs plus the bias"""
 		pass
 
 	@classmethod
 	@abstractmethod
-	def activation_derivative(cls, z) -> float:
-		"""Derivative of the activation function relative to z,
-			where z is the sum of weighted inputs plus the bias
-		"""
+	def activation_derivative(cls, z: numpy.ndarray) -> float:
+		"""Derivative of the activation function relative to z, where z is the sum of weighted inputs plus the bias"""
 		pass
 
 	def z(self, input: numpy.ndarray):
@@ -56,7 +52,7 @@ class Neuron(ABC):
 		return self.__class__.activation(z), z
 
 	def update(self, weight_changes: numpy.ndarray, delta: float, learning_rate: float,
-		friction: float, lregularization: LRegularization):
+		friction: Optional[float], lregularization: Optional[LRegularization]):
 
 		if lregularization is not None:
 			weight_changes = weight_changes + lregularization.weight_update_term(self.weights)
@@ -73,51 +69,51 @@ class Neuron(ABC):
 
 class SigmoidLogisticNeuron(Neuron):
 	@classmethod
-	def activation(cls, z):
-		return 1 / (1 + exp(-z))
+	def activation(cls, z: numpy.ndarray):
+		return 1 / (1 + numpy.exp(-z))
 
 	@classmethod
-	def activation_derivative(cls, z):
-		return exp(z) / (1 + exp(z)) ** 2
+	def activation_derivative(cls, z: numpy.ndarray):
+		return numpy.exp(z) / (1 + numpy.exp(z)) ** 2
 
 
 class SigmoidTanhNeuron(Neuron):
 	@classmethod
-	def activation(cls, z):
-		return tanh(z)
+	def activation(cls, z: numpy.ndarray):
+		return numpy.tanh(z)
 
 	@classmethod
-	def activation_derivative(cls, z):
-		return 1 - tanh(z) ** 2
+	def activation_derivative(cls, z: numpy.ndarray):
+		return 1 - numpy.tanh(z) ** 2
 
 
 class ReLU_Neuron(Neuron):
 	@classmethod
-	def activation(cls, z):
-		return 0 if z < 0 else z
+	def activation(cls, z: numpy.ndarray):
+		return numpy.where(z < 0, 0, z)
 
 	@classmethod
-	def activation_derivative(cls, z):
-		return 0 if z < 0 else 1
+	def activation_derivative(cls, z: numpy.ndarray):
+		return numpy.where(z < 0, 0, 1)
 
 
 class LeakyReLU_Neuron(Neuron):
 	leak_const = 0.01
 
 	@classmethod
-	def activation(cls, z):
-		return cls.leak_const * z if z < 0 else z
+	def activation(cls, z: numpy.ndarray):
+		return numpy.where(z < 0, z * LeakyReLU_Neuron.leak_const, z)
 
 	@classmethod
-	def activation_derivative(cls, z):
-		return cls.leak_const if z < 0 else 1
+	def activation_derivative(cls, z: numpy.ndarray):
+		return numpy.where(z < 0, LeakyReLU_Neuron.leak_const, 1)
 
 
 class LinearNeuron(Neuron):
 	@classmethod
-	def activation(cls, z):
+	def activation(cls, z: numpy.ndarray):
 		return z
 
 	@classmethod
-	def activation_derivative(cls, z):
-		return 1
+	def activation_derivative(cls, z: numpy.ndarray):
+		return numpy.ones(z.shape)

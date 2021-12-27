@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, List
 
 from .data_point import DataPoint
+from .data_batch import DataBatch
 
 
 class Data(ABC):
@@ -12,7 +13,7 @@ class Data(ABC):
 		pass
 
 	@abstractmethod
-	def split_batches(self, batch_size: int) -> Iterable[DataSample]:
+	def split_batches(self, batch_size: int) -> Iterable[DataBatch]:
 		pass
 
 
@@ -55,12 +56,12 @@ class DataSample(Data):
 		for data_point in self.data_points:
 			yield data_point.expected_output
 
-	def split_batches(self, batch_size: int) -> Iterable[DataSample]:
+	def split_batches(self, batch_size: int) -> Iterable[DataBatch]:
 		batch_data_points: List[DataPoint] = []
 		for data_point in self.data_points:
 			batch_data_points.append(data_point)
 			if len(batch_data_points) == batch_size:
-				yield DataSample(batch_data_points)
+				yield DataBatch(batch_data_points)
 				batch_data_points = []
 		if len(batch_data_points) > 0:
-			yield DataSample(batch_data_points)
+			yield DataBatch(batch_data_points)

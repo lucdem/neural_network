@@ -2,8 +2,9 @@ from __future__ import annotations
 import jsonlines
 from typing import Iterable, List
 
-from .data import Data, DataSample
+from .data import Data
 from .data_point import DataPoint
+from .data_batch import DataBatch
 
 
 class JsonlDataStream(Data):
@@ -21,16 +22,16 @@ class JsonlDataStream(Data):
 					break
 		return data_points
 
-	def split_batches(self, batch_size: int) -> Iterable[DataSample]:
+	def split_batches(self, batch_size: int) -> Iterable[DataBatch]:
 		with jsonlines.Reader(open(self.file_path)) as reader:
-			batch = []
+			batch_data_points = []
 			while True:
 				try:
-					batch.append(DataPoint.fromDict(reader.read()))
+					batch_data_points.append(DataPoint.fromDict(reader.read()))
 				except EOFError:
 					break
-				if len(batch) == batch_size:
-					yield DataSample(batch)
-					batch = []
-			if len(batch) > 0:
-				yield DataSample(batch)
+				if len(batch_data_points) == batch_size:
+					yield DataBatch(batch_data_points)
+					batch_data_points = []
+			if len(batch_data_points) > 0:
+				yield DataBatch(batch_data_points)
