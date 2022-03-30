@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QSizePolicy, QSpinBo
 from PyQt5.QtCore import Qt
 
 from .layer_type_combo_box import LayerTypeComboBox
-from app import NeuronTypeEnum
+from app import ActivationFunctionEnum
 
 
 class LayerParamsBox(QGroupBox):
@@ -73,7 +73,7 @@ class LayerParamsBox(QGroupBox):
 		sizes.append(self.output_layer_box.size_input.value())
 		return sizes
 
-	def get_layer_types(self) -> List[NeuronTypeEnum]:
+	def get_layer_types(self) -> List[ActivationFunctionEnum]:
 		types = [inner_box.type_input.get_selected_type() for inner_box in self.hidden_layers_inner_boxes]
 		types.append(self.output_layer_box.type_input.get_selected_type())
 		return types
@@ -81,10 +81,10 @@ class LayerParamsBox(QGroupBox):
 	def _check_values(self, layers):
 		for i, layer_box in enumerate(self.hidden_layers_inner_boxes):
 			layer_box.size_input.setValue(layers[i].size)
-			layer_box.type_input.set_selected_type(NeuronTypeEnum(type(layers[i].neurons[0])))
+			layer_box.type_input.set_selected_type(ActivationFunctionEnum(layers[i].activation_function))
 
 		self.output_layer_box.size_input.setValue(layers[-1].size)
-		self.output_layer_box.type_input.set_selected_type(NeuronTypeEnum(type(layers[-1].neurons[0])))
+		self.output_layer_box.type_input.set_selected_type(ActivationFunctionEnum(layers[-1].activation_function))
 
 
 class LayerInnerBox(QGroupBox):
@@ -122,7 +122,7 @@ class OutputLayerInnerBox(LayerInnerBox):
 
 
 class HiddenLayerInnerBox(LayerInnerBox):
-	def __init__(self, initial_type: NeuronTypeEnum = None):
+	def __init__(self, initial_type: ActivationFunctionEnum = None):
 		super().__init__("Hidden Layer")
 
 		self.layout().addWidget(QLabel("Layer Type"))

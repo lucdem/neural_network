@@ -8,12 +8,8 @@ from .data_point import DataPoint
 class DataBatch:
 	def __init__(self, data_points: List[DataPoint]):
 		self.__class__.__validate_data_points(data_points)
-		self.input: numpy.ndarray = numpy.concatenate(
-			[numpy.expand_dims(dp.input, 0) for dp in data_points]
-		)
-		self.expected_output: numpy.ndarray = numpy.concatenate(
-			[numpy.expand_dims(dp.expected_output, 0) for dp in data_points]
-		)
+		self.input: numpy.ndarray = numpy.vstack([dp.input for dp in data_points])
+		self.expected_output: numpy.ndarray = numpy.vstack([dp.expected_output for dp in data_points])
 
 	@property
 	def size(self):

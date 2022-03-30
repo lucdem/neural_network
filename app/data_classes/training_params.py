@@ -1,5 +1,4 @@
 from typing import Type
-from app.lregularization_enum import LRegularizationEnum
 from neural_network import CostFunction, MeanSquareError, LRegularization
 
 
@@ -15,6 +14,6 @@ class TrainingParams:
 		self.dropout = dropout
 		self.cost_function = cost_function
 		if lregularization is not None:
-			self.lregularization = lregularization(lreg_lambda, batch_size)
+			self.lregularization = lregularization(lreg_lambda)
 		else:
 			self.lregularization = None

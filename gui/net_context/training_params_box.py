@@ -86,10 +86,10 @@ class TrainingParamsBox(QGroupBox):
 
 		grid_layout.addWidget(QLabel('lambda'), 2, 2, Qt.AlignmentFlag.AlignCenter)
 		self.lreg_lambda = QDoubleSpinBox()
-		self.lreg_lambda.setDecimals(2)
+		self.lreg_lambda.setDecimals(8)
 		self.lreg_lambda.setRange(0, 1)
-		self.lreg_lambda.setSingleStep(0.01)
-		self.lreg_lambda.setValue(0.5)
+		self.lreg_lambda.setSingleStep(0.00000001)
+		self.lreg_lambda.setValue(0.005)
 		grid_layout.addWidget(self.lreg_lambda, 2, 3)
 
 		self.setLayout(grid_layout)

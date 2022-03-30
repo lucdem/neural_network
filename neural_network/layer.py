@@ -1,73 +1,58 @@
 from __future__ import annotations
-from typing import List, Tuple, Type, Optional
+from typing import Tuple, Type, Optional
 
-import numpy
+import numpy as np
 
-from .neuron import Neuron, SigmoidLogisticNeuron
-from .cost_function import CostFunction
+from .activation_function import ActivationFunction
 from .lregularization import LRegularization
 
 
 class Layer:
-	def __init__(self, neuron_type: Type[Neuron], input_count, size):
-		self.neurons: List[Neuron] = []
-		for i in range(size):
-			self.neurons.append(neuron_type(input_count))
+	random_bias_std_dev = 0.5
+	random_weight_std_dev = 0.5
 
-	@staticmethod
-	def create_from_neurons(neurons: List[Neuron]) -> Layer:
-		layer = Layer(SigmoidLogisticNeuron, 0, 0)
-		layer.neurons = neurons
-		return layer
+	def __init__(self, activation_function: Type[ActivationFunction], input_count, size):
+		self.activation_function = activation_function
+		self.weight_matrix = np.random.normal(0, self.__class__.random_weight_std_dev, (size, input_count))
+		self.weights_momentum = np.zeros((size, input_count))
+		self.biases = np.random.normal(0, self.__class__.random_weight_std_dev, (size, 1))
+		self.biases_momentum = np.zeros((size, 1))
 
 	@property
 	def input_count(self):
-		return self.neurons[0].input_count
+		return self.weight_matrix.shape[1]
 
 	@property
 	def size(self):
-		return len(self.neurons)
+		return self.weight_matrix.shape[0]
 
-	@property
-	def weight_matrix(self) -> numpy.ndarray:
-		return numpy.vstack([n.weights for n in self.neurons])
-
-	def output(self, input) -> Tuple[numpy.ndarray, numpy.ndarray]:
-		shape = (input.shape[0], self.size)
-		output = numpy.zeros(shape)
-		z = numpy.zeros(shape)
-		for i, neuron in enumerate(self.neurons):
-			output[:, i], z[:, i] = neuron.output(input)
+	def output(self, input) -> Tuple[np.ndarray, np.ndarray]:
+		z = (input @ self.weight_matrix.T) + self.biases.T
+		output = self.activation_function.activation(z)
 		return output, z
 
-	# generic version for n dimensions, might be useful later
-	# def activation_derivative(self, zs: numpy.ndarray) -> numpy.ndarray:
-	# 	derivative = numpy.zeros(zs.shape)
-	# 	slice_index_list: List[slice | int] = [slice(None) for i in range(zs.ndim)]
-	# 	for i, neuron in enumerate(self.neurons):
-	# 		slice_index_list[1] = i
-	# 		slice_index = tuple(slice_index_list)
-	# 		derivative[slice_index] = neuron.__class__.activation_derivative(zs[slice_index])
-	# 	return derivative
+	def activation_derivative(self, zs: np.ndarray) -> np.ndarray:
+		return self.activation_function.activation_derivative(zs)
 
-	def activation_derivative(self, zs: numpy.ndarray) -> numpy.ndarray:
-		derivative = numpy.zeros(zs.shape)
-		for i, neuron in enumerate(self.neurons):
-			derivative[:, i] = neuron.__class__.activation_derivative(zs[:, i])
-		return derivative
+	def update(self, weight_derivatives: np.ndarray, delta: np.ndarray, learning_rate: float,
+		neuron_drops: Optional[np.ndarray], friction: Optional[float], lregularization: Optional[LRegularization]):
 
-	def update(self, weight_changes: numpy.ndarray, delta: numpy.ndarray,
-		learning_rate: float, friction: Optional[float], lregularization: Optional[LRegularization]):
-		"""
-		Update neurons in the layer (indexing: [neuron_index, weight_index])
+		regularization_term = np.zeros(self.weight_matrix.shape)
+		if lregularization is not None:
+			regularization_term = lregularization.weight_update_term(self.weight_matrix)
 
-		Keyword Arguments:
+		weights_changes = - ((weight_derivatives + regularization_term) * learning_rate)
+		biases_changes = - (delta * learning_rate)
 
-			weight_changes -- Values to be subtracted from the weights (before momentum and lregularization is applied),
-			indexed as [neuron_index, weight_index]
+		if neuron_drops is not None:
+			weights_changes = weights_changes * neuron_drops
+			biases_changes = biases_changes * neuron_drops
 
-			delta -- Values to be subtracted from the biases (before momentum and lregularization is applied)
-		"""
-
-		for i, neuron in enumerate(self.neurons):
-			neuron.update(weight_changes[i, :], delta[i], learning_rate, friction, lregularization)
+		if friction is None:
+			self.weight_matrix = self.weight_matrix + weights_changes
+			biases_changes = self.biases + biases_changes
+		else:
+			self.weights_momentum = (self.weights_momentum * (1 - friction)) + weights_changes
+			self.weight_matrix = self.weight_matrix + self.weights_momentum
+			self.biases_momentum = (self.biases_momentum * (1 - friction)) + biases_changes
+			self.biases = self.biases + self.biases_momentum
