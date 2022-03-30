@@ -1,17 +1,15 @@
 from typing import Dict, Type, List
 from json import JSONEncoder, JSONDecoder
 
-import numpy
+import numpy as np
 
-from neural_network import NeuralNetwork, Neuron
-from neural_network.layer import Layer
-
-from .neuron_type_enum import NeuronTypeEnum
+from neural_network import NeuralNetwork, ActivationFunction, Layer
+from .activation_function_enum import ActivationFunctionEnum
 
 
 class ExtendedNeuralNetwork(NeuralNetwork):
-	def __init__(self, neuron_type: Type[Neuron], input_count, layer_sizes: List[int], name = "New net"):
-		super().__init__(neuron_type, input_count, layer_sizes)
+	def __init__(self, activation_function: Type[ActivationFunction], input_count, layer_sizes: List[int], name = "New net"):
+		super().__init__(activation_function, input_count, layer_sizes)
 		self.name: str = name
 
 	def __getstate__(self):
@@ -19,7 +17,7 @@ class ExtendedNeuralNetwork(NeuralNetwork):
 			'name': self.name,
 			'input_count': self.input_count,
 			'layers': [{
-				'neuron_type': NeuronTypeEnum(type(layer.neurons[0])).name,
+				'neuron_type': ActivationFunctionEnum(type(layer.neurons[0])).name,
 				'weight_matrix': [neuron.weights for neuron in layer.neurons]
 			} for layer in self.layers]
 		}
@@ -29,7 +27,7 @@ class ExtendedNeuralNetwork(NeuralNetwork):
 		for layer_state in state['layers']:
 			neurons = []
 			for weights in range(layer_state['weight_matrix'].shape[1]):
-				neuron = NeuronTypeEnum[layer_state['neuron_type']].value(weights.size)
+				neuron = ActivationFunctionEnum[layer_state['neuron_type']].value(weights.size)
 				neuron.weights = weights
 			layers.append(Layer.create_from_neurons(neurons))
 
@@ -42,11 +40,13 @@ class NetJsonEnconder(JSONEncoder):
 			return obj.__dict__
 		elif isinstance(obj, Layer):
 			return {
-				'neuron_type': NeuronTypeEnum(type(obj.neurons[0])).name,
-				'weight_matrix': [neuron.weights.tolist() for neuron in obj.neurons],
-				'biases': [neuron.bias for neuron in obj.neurons]
+				'activation_function': obj.activation_function.__name__,
+				'weight_matrix': obj.weight_matrix,
+				'biases': obj.biases
 			}
-		return super().default()
+		elif isinstance(obj, np.ndarray):
+			return obj.tolist()
+		return super().default(obj)
 
 
 class NetJsonDecoder(JSONDecoder):
@@ -60,10 +60,8 @@ class NetJsonDecoder(JSONDecoder):
 			net.name = dict['name']
 			return net
 		else:
-			neurons = []
-			for i, weights in enumerate(dict['weight_matrix']):
-				neuron = NeuronTypeEnum[dict['neuron_type']].value(len(weights))
-				neuron.weights = numpy.array(weights)
-				neuron.bias = dict['biases'][i]
-				neurons.append(neuron)
-			return Layer.create_from_neurons(neurons)
+			weights = np.array(weights)
+			layer = Layer(ActivationFunctionEnum[dict['activation_function']].value, weights.shape[1], weights.shape[0])
+			layer.weight_matrix = weights
+			layer.biases = np.array(dict['biases'])
+			return layer

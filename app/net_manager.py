@@ -1,12 +1,13 @@
-from typing import Iterable, List, Callable, Dict, Tuple
+from typing import Iterable, List, Dict, Tuple
 import os
 import json
 
+import numpy as np
 
-from neural_network import Layer, SigmoidLogisticNeuron, JsonlDataStream, MeanSquareError
+from neural_network import Layer, Logistic, JsonlDataStream
 from .extended_neural_network import ExtendedNeuralNetwork, NetJsonEnconder, NetJsonDecoder
 from .data_classes.training_params import TrainingParams
-from app.neuron_type_enum import NeuronTypeEnum
+from .activation_function_enum import ActivationFunctionEnum
 
 
 class NetManager:
@@ -26,7 +27,7 @@ class NetManager:
 		return last_id
 
 	def new_net(self) -> int:
-		net = ExtendedNeuralNetwork(SigmoidLogisticNeuron, 1, [1])
+		net = ExtendedNeuralNetwork(Logistic, 1, [1])
 		return self._new_net(net)
 
 	def change_selected_net(self, selected_id: int):
@@ -37,7 +38,7 @@ class NetManager:
 			net = json.loads(f.read(), cls = NetJsonDecoder)
 		return self._new_net(net)
 
-	def build_net(self, net_id: int, input_count: int, layer_sizes: List[int], layer_types: List[NeuronTypeEnum]):
+	def build_net(self, net_id: int, input_count: int, layer_sizes: List[int], layer_types: List[ActivationFunctionEnum]):
 		name = self.net_by_id[net_id].name
 		layers = [Layer(layer_types[0].value, input_count, layer_sizes[0])]
 		for i in range(1, len(layer_sizes)):
@@ -47,7 +48,7 @@ class NetManager:
 		self.net_by_id[net_id] = net_built
 
 	def train_net(self, net_id: int, training_data_path: str, validation_data_path: str,
-		params: TrainingParams) -> Iterable[Tuple[int, float, float]]:
+		params: TrainingParams) -> Iterable[Tuple[int, np.floating, float]]:
 
 		training_data = JsonlDataStream(training_data_path)
 		validation_data = JsonlDataStream(validation_data_path)

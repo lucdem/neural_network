@@ -1,7 +1,7 @@
 from .neural_network import NeuralNetwork
 from .layer import Layer
-from .neuron import SigmoidLogisticNeuron, SigmoidTanhNeuron, ReLU_Neuron, LeakyReLU_Neuron, LinearNeuron, Neuron
-from .cost_function import CostFunction, MeanSquareError, AbsoluteError
+from .activation_function import ActivationFunction, Logistic, Tanh, ReLU, LeakyReLU, Linear
+from .cost_function import CostFunction, SquaredError, AbsoluteError
 from .lregularization import LRegularization, L1, L2
 from .data.data_point import DataPoint
 from .data.data import Data, DataSample

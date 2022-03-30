@@ -1,8 +1,8 @@
 from enum import Enum
 
-from neural_network import MeanSquareError, AbsoluteError
+from neural_network import SquaredError, AbsoluteError
 
 
 class CostFunctionEnum(Enum):
-	MeanSquareError = MeanSquareError
+	MeanSquareError = SquaredError
 	AbsoluteError = AbsoluteError
