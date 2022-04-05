@@ -5,6 +5,7 @@ from pyqtgraph import GraphicsView, GraphicsLayout
 import pyqtgraph
 
 from app import NetManager
+from gui.settings import Settings, SettingsEnum
 
 from .net_plot_data import NetPlotData
 
@@ -36,10 +37,16 @@ def _random_color():
 	return _line_colors[randint(0, len(_line_colors) - 1)]
 
 
-_line_width = 1 # TODO: some way for the user to change this
-
-
 class GraphicsWrapper():
+	_line_width = 0
+	update_interval = 0
+
+	@classmethod
+	def _class_var_init(cls):
+		settings = Settings()
+		cls._line_width = settings.get_setting(SettingsEnum.GraphLineWidth, int)
+		cls.update_interval = settings.get_setting(SettingsEnum.GraphUpdateInterval, int)
+
 	def __init__(self, net_manager: NetManager):
 		pyqtgraph.setConfigOptions(antialias = True)
 
@@ -63,8 +70,6 @@ class GraphicsWrapper():
 		self.cost_graph.showGrid(True, True)
 		self.cost_graph.addLegend(offset = (-5, 5))
 
-		self.update_interval = 5 # TODO: some way for the user to change this
-
 	def create_plot_data(self, net_id, max_epochs):
 		data = self.net_graph_data_dict.get(net_id)
 		if data is not None:
@@ -82,10 +87,23 @@ class GraphicsWrapper():
 		data = self.net_graph_data_dict[net_id]
 		data.add_point(epoch, cost, acc)
 
-		if epoch % self.update_interval == 0 or epoch == data.acc.size:
+		if epoch % __class__.update_interval == 0 or epoch == data.acc.size:
 			self.cost_graph.setXRange(0, data.cost.size)
 			self.cost_graph.setYRange(0, data.max_cost)
 			data.refresh()
 
 	def create_pen_params(self):
-		return {'color': _random_color(), 'width': _line_width}
+		return {'color': _random_color(), 'width': __class__._line_width}
+
+	@property
+	def line_width(self):
+		return __class__._line_width
+
+	@line_width.setter
+	def line_width(self, x):
+		for plot_data in self.net_graph_data_dict.values():
+			plot_data.update_pen(x)
+		self.__class__._line_width = x
+
+
+GraphicsWrapper._class_var_init()

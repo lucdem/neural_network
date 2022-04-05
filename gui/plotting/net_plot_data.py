@@ -16,6 +16,11 @@ class NetPlotData:
 		self.acc_data_item = PlotDataItem(self.epochs, self.acc, name = legend_label)
 		self.acc_data_item.setPen(self.pen_params)
 
+	def update_pen(self, line_width: int):
+		self.pen_params['width'] = line_width
+		self.cost_data_item.setPen(self.pen_params)
+		self.acc_data_item.setPen(self.pen_params)
+
 	def add_point(self, epoch, cost, acc):
 		self.cost[epoch] = cost
 		if cost > self.max_cost:

@@ -1,61 +1,40 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMenu
+from PyQt5.QtWidgets import QMainWindow
 
 from app.net_manager import NetManager
+from gui.plotting.graphics_wrapper import GraphicsWrapper
 
-from .text_output_widget import TextOutputWidget
-from .plotting.graphics_wrapper import GraphicsWrapper
-from .net_list_widget import NetListWidget
-from .net_stacked_layout import NetStackedLayout
-
-from random import uniform
+from .main_central_widget import MainCentralWidget
+from .options_modal import OptionsModal
+from .tool_bar import ToolBar
+from .settings import Settings, SettingsEnum
 
 
-class MainWindow(QWidget):
-	def __init__(self, net_manager):
+class MainWindow(QMainWindow):
+	def __init__(self, net_manager: NetManager):
 		super().__init__()
-
-		self.net_manager: NetManager = net_manager
-		self.graph_wrapper = GraphicsWrapper(net_manager)
-
-		# build window
-		self.top_layer_layout = QHBoxLayout()
-		self.net_list_widget = NetListWidget(net_manager)
-		self.center_layout = QVBoxLayout()
-		self.graph_widget = self.graph_wrapper.widget
-
+		self.settings = Settings()
 		self.setWindowTitle("Neural Network")
-		self.setLayout(self.top_layer_layout)
+		self._centralWidget = MainCentralWidget(net_manager) # just to keep static typing
+		self.setCentralWidget(self._centralWidget)
 
-		self.top_layer_layout.addWidget(self.net_list_widget, stretch=1)
-		self.top_layer_layout.addLayout(self.center_layout, stretch=3)
-		self.top_layer_layout.addWidget(self.graph_widget, stretch=3)
-
-		self.net_stacked_layout = NetStackedLayout(self.net_manager)
-		self.center_layout.addLayout(self.net_stacked_layout)
-
-		self.text_output = TextOutputWidget(net_manager)
-		self.center_layout.addWidget(self.text_output, stretch=0)
-
-		self.showMaximized()
+		self.toolBar = ToolBar("Settings")
+		self.addToolBar(self.toolBar)
+		self.options_modal = OptionsModal()
 
 		# event/signal bindings
 
-		self.net_stacked_layout.net_name_changed_signal.connect(self.net_list_widget.change_selected_net_name)
-		self.net_stacked_layout.net_name_changed_signal.connect(self.text_output.net_name_change_msg)
-		self.net_stacked_layout.net_built_signal.connect(self.text_output.net_built_msg)
+		self.toolBar.options_action.triggered.connect(self.open_options)
 
-		self.net_list_widget.removed_net_signal.connect(self.net_stacked_layout.remove_context)
-		self.net_list_widget.selected_net_changed_signal.connect(self.net_stacked_layout.change_context)
+		self.options_modal.graph_line_width_input.valueChanged.connect(self.change_graph_line_width)
+		self.options_modal.graph_update_interval.valueChanged.connect(self.change_graph_update_interval)
 
-		self.net_stacked_layout.training_started_signal.connect(self.graph_wrapper.create_plot_data)
-		self.net_stacked_layout.training_started_signal.connect(self.text_output.training_started_msg)
-		self.net_stacked_layout.training_progress_signal.connect(self.graph_wrapper.update_graphs)
-		self.net_stacked_layout.training_progress_signal.connect(self.text_output.training_progress_msg)
+	def open_options(self):
+		self.options_modal.show()
 
-	def contextMenuEvent(self, event):
-		menu = QMenu(self)
+	def change_graph_line_width(self, x: int):
+		self._centralWidget.graph_wrapper.line_width = x
+		self.settings.change_setting(SettingsEnum.GraphLineWidth, x)
 
-		test = menu.addAction('test')
-		test.triggered.connect(self.test)
-
-		menu.exec(event.globalPos())
+	def change_graph_update_interval(self, x: int):
+		GraphicsWrapper.update_interval = x
+		self.settings.change_setting(SettingsEnum.GraphUpdateInterval, x)

@@ -10,5 +10,6 @@ app = QApplication(sys.argv)
 
 net_manager = NetManager()
 window = MainWindow(net_manager)
+window.showMaximized()
 
 app.exec()
